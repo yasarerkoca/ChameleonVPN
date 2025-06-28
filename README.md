@@ -41,4 +41,4 @@ isteyenler `CONTRIBUTING.md` dosyasını inceleyebilir.
 
 ## 🛡️ Lisans
 
-MIT
+Bütün hakları Yaşar Erkoca'a aittir.  
