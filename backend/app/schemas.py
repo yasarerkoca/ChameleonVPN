@@ -1,20 +1,23 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, constr
 from typing import Optional
+from datetime import datetime
 
 
 class UserCreate(BaseModel):
-    username: str
     email: EmailStr
-    password: str
+    password: constr(min_length=8, max_length=64)
 
 
 class UserOut(BaseModel):
     id: int
-    username: str
     email: EmailStr
+    is_admin: bool
+    is_active: bool
+    email_verified: bool
+    created_at: datetime
 
     class Config:
-        from_attributes = True
+        from_attributes = True  # Pydantic v2 uyumu
 
 
 class UserLogin(BaseModel):
