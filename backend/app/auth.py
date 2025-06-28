@@ -1,37 +1,49 @@
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.orm import Session
+from fastapi.security import OAuth2PasswordRequestForm
+from app import models, schemas, auth, utils
 
-from passlib.context import CryptContext
-from jose import jwt, JWTError
-from datetime import datetime, timedelta
-from app.config import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES, REFRESH_TOKEN_EXPIRE_DAYS
-import re, secrets
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-BLACKLIST = set()
-def verify_password(plain_password, hashed_password):
-    return pwd_context.verify(plain_password, hashed_password)
-def get_password_hash(password):
-    if not is_strong_password(password):
-        raise ValueError("Şifre yeterince güçlü değil!")
-    return pwd_context.hash(password)
-def is_strong_password(password):
-    return bool(re.match(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$', password))
-def create_access_token(data: dict, expires_minutes: int = None):
-    to_encode = data.copy()
-    expire = datetime.utcnow() + timedelta(minutes=expires_minutes or ACCESS_TOKEN_EXPIRE_MINUTES)
-    to_encode.update({"exp": expire, "iat": datetime.utcnow(), "iss": "chameleonvpn", "aud": "chameleonvpn_users"})
-    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-    return encoded_jwt
-def create_refresh_token(data: dict):
-    to_encode = data.copy()
-    expire = datetime.utcnow() + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
-    to_encode.update({"exp": expire, "iat": datetime.utcnow(), "iss": "chameleonvpn", "aud": "chameleonvpn_users", "type": "refresh"})
-    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-    return encoded_jwt
-def decode_token(token: str, audience="chameleonvpn_users"):
-    if token in BLACKLIST:
-        raise JWTError("Token blacklisted!")
-    return jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM], audience=audience, issuer="chameleonvpn")
-def revoke_token(token: str):
-    BLACKLIST.add(token)
-def generate_token():
-    return secrets.token_urlsafe(32)
-    
+router = APIRouter(
+    prefix="/auth",
+    tags=["auth"]
+)
+
+def send_verification_email(user):
+    # Burayı gerçek e-posta gönderim sistemi ile değiştirmen gerekir
+    print(f"Verification email sent to: {user.email}")
+
+@router.post("/register", response_model=schemas.UserOut)
+def register(user: schemas.UserCreate, db: Session = Depends(utils.get_db)):
+    existing_user = db.query(models.User).filter(models.User.email == user.email).first()
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Email already registered")
+
+    if not auth.is_strong_password(user.password):
+        raise HTTPException(status_code=400, detail="Password is too weak")
+
+    hashed_password = auth.get_password_hash(user.password)
+    new_user = models.User(
+        email=user.email,
+        hashed_password=hashed_password,
+        is_active=True,  # Geliştirme sürecinde aktif olsun
+        email_verified=True  # Geliştirme sürecinde doğrulanmış kabul et
+    )
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+
+    send_verification_email(new_user)
+    return new_user
+
+@router.post("/login")
+def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(utils.get_db)):
+    user = db.query(models.User).filter(models.User.email == form_data.username).first()
+
+    if not user or not auth.verify_password(form_data.password, user.hashed_password):
+        raise HTTPException(status_code=400, detail="Incorrect email or password")
+
+    if not user.is_active or not user.email_verified:
+        raise HTTPException(status_code=403, detail="Account is not activated")
+
+    access_token = auth.create_access_token(data={"sub": user.email})
+    return {"access_token": access_token, "token_type": "bearer"}
