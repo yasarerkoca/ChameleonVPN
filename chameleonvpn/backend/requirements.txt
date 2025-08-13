@@ -1,7 +1,0 @@
-fastapi
-httpx
-uvicorn
-pydantic
-sqlalchemy
-python-jose
-passlib[bcrypt]
