@@ -54,7 +54,6 @@ releases/
 .packages
 .flutter-plugins
 .flutter-plugins-dependencies
-pubspec.lock
 build/
 android/.gradle/
 android/app/build/
