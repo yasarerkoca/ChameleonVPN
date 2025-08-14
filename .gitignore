@@ -1,0 +1,126 @@
+########################################
+# Python / Backend (FastAPI)
+########################################
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+*.db
+*.sqlite3
+*.log
+*.out
+
+# Virtual env
+.env
+.venv/
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Build / Packaging
+build/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Alembic
+alembic/versions/*.pyc
+alembic/versions/__pycache__/
+
+# Local DB data & backups
+db/data/
+db_backups/
+releases/
+
+########################################
+# Flutter / Mobile
+########################################
+.dart_tool/
+.packages
+.flutter-plugins
+.flutter-plugins-dependencies
+pubspec.lock
+build/
+android/.gradle/
+android/app/build/
+ios/Pods/
+ios/Flutter/Flutter.framework/
+ios/Flutter/Flutter.podspec
+ios/.symlinks/
+ios/Flutter/Generated.xcconfig
+ios/Runner/GeneratedPluginRegistrant.*
+macos/Pods/
+macos/Flutter/ephemeral/
+linux/flutter/ephemeral/
+windows/flutter/ephemeral/
+
+########################################
+# Web (web-admin / web-user)
+########################################
+node_modules/
+npm-debug.log
+yarn-error.log
+.next/
+dist/
+.cache/
+*.map
+
+########################################
+# Logs
+########################################
+logs/
+*.log
+
+########################################
+# Static / Uploads
+########################################
+static/
+
+########################################
+# IDE / Tools
+########################################
+.vscode/
+.idea/
+.spyderproject
+.spyproject
+.ropeproject
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.ruff_cache/
+.pyre/
+.pytype/
+cython_debug/
+.pypirc
+
+########################################
+# Test / Coverage
+########################################
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+cover/
