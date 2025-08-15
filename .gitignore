@@ -126,3 +126,11 @@ cover/
 
 /db_backups/
 /var/backups/
+
+.venv/
+logs/**.log
+*.log
+builds/
+*.deb
+archive/
+alembic.log

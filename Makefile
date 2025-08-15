@@ -1,13 +1,15 @@
+COMPOSE ?= docker compose
+
 .PHONY: help backend-up backend-down backend-migrate mobile-build
 
 help:
 	@echo "Targets: backend-up | backend-down | backend-migrate | mobile-build"
 
 backend-up:
-	docker compose up -d
+	$(COMPOSE) up -d
 
 backend-down:
-	docker compose down
+	$(COMPOSE) down
 
 backend-migrate:
 	cd backend && alembic upgrade head
