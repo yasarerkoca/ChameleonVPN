@@ -29,4 +29,4 @@ class CorporateUserRightsHistory(Base):
 
     # Ana ilişkiler
     user = relationship("User", foreign_keys=[user_id], back_populates="corporate_rights_changes")
-    changed_by_admin = relationship("User", foreign_keys=[changed_by_admin_id], back_populates="admin_corporate_changes")
+    changed_by_admin = relationship("User", foreign_keys=[changed_by_admin_id], back_populates="corporate_rights_changes")

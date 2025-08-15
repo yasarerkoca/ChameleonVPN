@@ -6,6 +6,8 @@ from sqlalchemy.orm import relationship
 from app.config.database import Base
 
 class APIKey(Base):
+    from sqlalchemy import Column, Integer, ForeignKey
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     __tablename__ = "api_keys"
 
     id = Column(Integer, primary_key=True, index=True)

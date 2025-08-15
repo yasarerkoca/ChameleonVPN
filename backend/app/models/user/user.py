@@ -67,3 +67,37 @@ class User(Base):
 
     def __repr__(self):
         return f"<User id={self.id} email={self.email} active={self.is_active}>"
+
+# --- REL PATCH (auto) ---
+from sqlalchemy.orm import relationship
+try:
+    from app.models.corporate.corporate_user_rights_history import CorporateUserRightsHistory  # noqa
+except Exception:
+    pass
+else:
+    try:
+        User  # noqa
+        if not hasattr(User, "corporate_rights_changes"):
+            User.corporate_rights_changes = relationship(
+                "CorporateUserRightsHistory",
+                back_populates="user",
+                cascade="all, delete-orphan",
+            )
+    except NameError:
+        pass
+# --- /REL PATCH ---
+
+
+# --- AUTO PATCH: relationships ---
+try:
+    User  # noqa
+    if not hasattr(User, "api_keys"):
+        api_keys = relationship(
+            "APIKey",
+            back_populates="user",
+            cascade="all, delete-orphan",
+        )
+        User.api_keys = api_keys
+except NameError:
+    pass
+# --- END PATCH ---

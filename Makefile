@@ -12,6 +12,7 @@ backend-down:
 	$(COMPOSE) down
 
 backend-migrate:
+	$(COMPOSE) exec backend alembic upgrade head
 	cd backend && alembic upgrade head
 
 mobile-build:
