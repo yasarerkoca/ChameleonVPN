@@ -1,0 +1,7 @@
+Package: chameleon-vpn
+Version: 1.0.0
+Section: base
+Priority: optional
+Architecture: amd64
+Maintainer: Yasar Erkoca <yasarerkoca@gmail.com>
+Description: ChameleonVPN Linux istemcisi

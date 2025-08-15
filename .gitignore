@@ -123,3 +123,6 @@ coverage.xml
 .hypothesis/
 .pytest_cache/
 cover/
+
+/db_backups/
+/var/backups/
