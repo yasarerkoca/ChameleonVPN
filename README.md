@@ -3,6 +3,9 @@
 ChameleonVPN çok katmanlı bir VPN platformudur. Backend API, web tabanlı yönetim
 ve kullanıcı panelleri, mobil uygulama ve daha fazlasını içerir.
 
+[![Mobile Build](https://github.com/yasarerkoca/ChameleonVPN/actions/workflows/release.yml/badge.svg)](https://github.com/yasarerkoca/ChameleonVPN/actions/workflows/release.yml)
+
+
 ## 📁 Dizin Yapısı
 
 ```
