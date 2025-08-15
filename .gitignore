@@ -134,3 +134,8 @@ builds/
 *.deb
 archive/
 alembic.log
+
+# Flutter ephemeral & symlinks
+**/flutter/ephemeral/
+**/.plugin_symlinks/
+**/.npm/
