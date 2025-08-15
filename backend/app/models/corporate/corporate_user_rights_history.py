@@ -28,5 +28,5 @@ class CorporateUserRightsHistory(Base):
     note = Column(String(256), nullable=True)
 
     # Ana ilişkiler
-    user = relationship("User", foreign_keys=[user_id], back_populates="corporate_rights_changes")
-    changed_by_admin = relationship("User", foreign_keys=[changed_by_admin_id], back_populates="corporate_rights_changes")
+    user = relationship('User', foreign_keys=[user_id], backref='corporate_rights_changes')
+    changed_by_admin = relationship('User', foreign_keys=[changed_by_admin_id], backref='corporate_rights_changes')

@@ -15,7 +15,7 @@ class UserBlocklist(Base):
     blocked_at = Column(DateTime(timezone=True), server_default=func.now())
     expires_at = Column(DateTime(timezone=True), nullable=True)
 
-    user = relationship("User", back_populates="blocklist")
+    user = relationship('User', backref='blocklist')
 
     def __repr__(self):
         return f"<UserBlocklist user_id={self.user_id}, reason={self.reason}>"

@@ -13,7 +13,7 @@ class UserExternalAuth(Base):
     provider = Column(String(64), nullable=False)              # Örn: google, github, facebook
     provider_user_id = Column(String(128), nullable=False)     # Sağlayıcıya özel kullanıcı ID'si
 
-    user = relationship("User", back_populates="external_auths")
+    user = relationship('User', backref='external_auths')
 
     def __repr__(self):
         return f"<UserExternalAuth user_id={self.user_id}, provider={self.provider}>"

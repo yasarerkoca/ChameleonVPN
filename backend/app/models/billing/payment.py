@@ -16,5 +16,5 @@ class Payment(Base):
     status = Column(String(32), default="pending")  # pending, completed, failed, refunded
     created_at = Column(DateTime, default=datetime.utcnow)
 
-    user = relationship("User", back_populates="payments")
+    user = relationship('User', backref='payments')
     plan = relationship("Plan", back_populates="payments")

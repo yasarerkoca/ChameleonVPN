@@ -20,7 +20,7 @@ class UserSession(Base):
     ip_address = Column(String(45), nullable=True)
     device_info = Column(String(256), nullable=True)
 
-    user = relationship("User", back_populates="sessions")
+    user = relationship('User', backref='sessions')
 
     def __repr__(self):
         return f"<UserSession user_id={self.user_id} status={self.status}>"

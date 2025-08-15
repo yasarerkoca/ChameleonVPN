@@ -17,7 +17,7 @@ class TwoFactorToken(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     expires_at = Column(DateTime(timezone=True), nullable=False)
 
-    user = relationship("User", back_populates="two_factor_tokens")
+    user = relationship('User', backref='two_factor_tokens')
 
     def __repr__(self):
         return f"<TwoFactorToken user_id={self.user_id}, expires_at={self.expires_at}>"

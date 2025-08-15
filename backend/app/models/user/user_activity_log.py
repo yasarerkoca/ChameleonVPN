@@ -15,7 +15,7 @@ class UserActivityLog(Base):
     detail = Column(String(256), nullable=True)              # Ek bilgi (örn: IP, endpoint, değişiklik)
     timestamp = Column(DateTime(timezone=True), server_default=func.now())
 
-    user = relationship("User", back_populates="activity_logs")
+    user = relationship('User', backref='activity_logs')
 
     def __repr__(self):
         return f"<UserActivityLog user_id={self.user_id}, type={self.activity_type}>"

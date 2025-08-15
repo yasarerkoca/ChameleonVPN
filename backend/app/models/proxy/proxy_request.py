@@ -15,4 +15,4 @@ class ProxyRequest(Base):
     request_reason = Column(Text, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
-    user = relationship("User", back_populates="proxy_requests")
+    user = relationship('User', backref='proxy_requests')

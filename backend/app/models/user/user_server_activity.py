@@ -16,7 +16,7 @@ class UserServerActivity(Base):
     timestamp = Column(DateTime(timezone=True), server_default=func.now())
     details = Column(String(256), nullable=True)
 
-    user = relationship("User", back_populates="activities")
+    user = relationship('User', backref='activities')
 
     def __repr__(self):
         return f"<UserServerActivity user_id={self.user_id} server_ip={self.server_ip} type={self.activity_type}>"

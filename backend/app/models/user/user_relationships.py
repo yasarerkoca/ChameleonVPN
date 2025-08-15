@@ -15,7 +15,7 @@ class UserRelationship(Base):
     relationship_type = Column(String(64), nullable=False)  # friend, blocked, referral, etc.
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
-    user = relationship("User", back_populates="relationships", foreign_keys=[user_id])
+    user = relationship('User', backref='relationships', foreign_keys=[user_id])
     related_user = relationship("User", foreign_keys=[related_user_id])
 
     def __repr__(self):

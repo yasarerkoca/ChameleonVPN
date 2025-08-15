@@ -13,5 +13,5 @@ class VPNConfig(Base):
     config = Column(Text, nullable=False)
 
     # İlişkiler (isteğe bağlı)
-    user = relationship("User", back_populates="vpn_configs")
+    user = relationship('User', backref='vpn_configs')
     server = relationship("VPNServer", back_populates="vpn_configs")

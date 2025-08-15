@@ -16,4 +16,4 @@ class SubscriptionHistory(Base):
     started_at = Column(DateTime, default=datetime.utcnow)
     ended_at = Column(DateTime, nullable=True)
 
-    user = relationship("User", back_populates="subscription_histories")
+    user = relationship('User', backref='subscription_histories')

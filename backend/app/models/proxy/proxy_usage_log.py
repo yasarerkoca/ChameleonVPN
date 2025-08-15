@@ -19,7 +19,7 @@ class ProxyUsageLog(Base):
 
     # İlişkiler
     proxy = relationship("ProxyIP", back_populates="usage_logs")
-    user = relationship("User", back_populates="proxy_usage_logs")
+    user = relationship('User', backref='proxy_usage_logs')
 
     def __repr__(self):
         return f"<ProxyUsageLog user_id={self.user_id}, used_mb={self.used_mb}>"

@@ -18,7 +18,7 @@ class UserSupportTicket(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
-    user = relationship("User", back_populates="support_tickets")
+    user = relationship('User', backref='support_tickets')
 
     def __repr__(self):
         return f"<UserSupportTicket id={self.id} user_id={self.user_id} status={self.status}>"

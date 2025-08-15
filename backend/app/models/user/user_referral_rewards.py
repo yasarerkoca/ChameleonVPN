@@ -17,10 +17,9 @@ class UserReferralReward(Base):
     status = Column(String(32), default="pending")  # pending, paid, expired, etc.
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
-    user = relationship(
-        "User",
+    user = relationship('User',
         foreign_keys=[user_id],
-        back_populates="referrals"
+        backref='referrals'
     )
     referred_user = relationship(
         "User",

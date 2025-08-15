@@ -17,4 +17,4 @@ class BillingHistory(Base):
     transaction_date = Column(DateTime, default=datetime.utcnow)
     status = Column(String(64), default="pending")
 
-    user = relationship("User", back_populates="billing_histories")
+    user = relationship('User', backref='billing_histories')

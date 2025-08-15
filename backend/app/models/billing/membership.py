@@ -17,5 +17,5 @@ class Membership(Base):
     ended_at = Column(DateTime, nullable=True)
 
     # İlişkiler
-    user = relationship("User", back_populates="memberships")
+    user = relationship('User', backref='memberships')
     plan = relationship("Plan", back_populates="memberships")

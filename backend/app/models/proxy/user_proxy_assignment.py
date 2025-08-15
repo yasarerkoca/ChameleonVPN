@@ -19,7 +19,7 @@ class UserProxyAssignment(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     # İlişkiler
-    user = relationship("User", back_populates="proxy_assignments")
+    user = relationship('User', backref='proxy_assignments')
     proxy = relationship("ProxyIP", back_populates="assignments")
 
     def __repr__(self):
