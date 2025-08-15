@@ -1,13 +1,11 @@
 # ~/ChameleonVPN/backend/app/models/user/user.py
 
+from datetime import datetime
 from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
-from datetime import datetime
 
 from app.config.database import Base
-from app.models.corporate import CorporateUserGroup
-from app.models.security.limit import UserLimit  # Limit modeli
 
 class User(Base):
     __tablename__ = "users"
@@ -59,45 +57,76 @@ class User(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, nullable=True)
 
-    # İlişkiler
-    limits = relationship("UserLimit", back_populates="user", cascade="all, delete-orphan")
-    corporate_group = relationship("CorporateUserGroup", back_populates="users", foreign_keys=[corporate_group_id])
-    notifications = relationship("UserNotification", back_populates="user", cascade="all, delete-orphan")
-    relationships = relationship("UserRelationship", back_populates="user", cascade="all, delete-orphan")
+    # ---------------------------
+    # İlişkiler (back_populates)
+    # ---------------------------
+
+    # Kurumsal grup (N:1)
+    corporate_group = relationship(
+        "CorporateUserGroup",
+        back_populates="users",
+        foreign_keys=[corporate_group_id],
+    )
+
+    # Limitler (1:N)
+    limits = relationship(
+        "UserLimit",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
+
+    # Bildirimler (1:N)
+    notifications = relationship(
+        "UserNotification",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
+
+    # Kullanıcı ilişkileri — ÇIKIŞ (user_id)
+    relationships = relationship(
+        "UserRelationship",
+        foreign_keys="[UserRelationship.user_id]",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
+
+    # Kullanıcı ilişkileri — GİRİŞ (related_user_id)
+    related_relationships = relationship(
+        "UserRelationship",
+        foreign_keys="[UserRelationship.related_user_id]",
+        back_populates="related_user",
+        cascade="all, delete-orphan",
+    )
+
+    # API anahtarları (1:N)
+    api_keys = relationship(
+        "APIKey",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
+
+    # 2FA tokenları (1:N)
+    two_factor_tokens = relationship(
+        "TwoFactorToken",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
+
+    # Kurumsal hak değişikliği geçmişi (1:N) — CorporateUserRightsHistory.user
+    corporate_rights_history = relationship(
+        "CorporateUserRightsHistory",
+        back_populates="user",
+        cascade="all, delete-orphan",
+        foreign_keys="CorporateUserRightsHistory.user_id",
+    )
+
+    # Admin tarafından yapılan değişiklikler (1:N) — CorporateUserRightsHistory.changed_by_admin
+    admin_rights_changes = relationship(
+        "CorporateUserRightsHistory",
+        back_populates="changed_by_admin",
+        cascade="all, delete-orphan",
+        foreign_keys="CorporateUserRightsHistory.changed_by_admin_id",
+    )
 
     def __repr__(self):
         return f"<User id={self.id} email={self.email} active={self.is_active}>"
-
-# --- REL PATCH (auto) ---
-from sqlalchemy.orm import relationship
-try:
-    from app.models.corporate.corporate_user_rights_history import CorporateUserRightsHistory  # noqa
-except Exception:
-    pass
-else:
-    try:
-        User  # noqa
-        if not hasattr(User, "corporate_rights_changes"):
-            User.corporate_rights_changes = relationship(
-                "CorporateUserRightsHistory",
-                back_populates="user",
-                cascade="all, delete-orphan",
-            )
-    except NameError:
-        pass
-# --- /REL PATCH ---
-
-
-# --- AUTO PATCH: relationships ---
-try:
-    User  # noqa
-    if not hasattr(User, "api_keys"):
-        api_keys = relationship(
-            "APIKey",
-            back_populates="user",
-            cascade="all, delete-orphan",
-        )
-        User.api_keys = api_keys
-except NameError:
-    pass
-# --- END PATCH ---

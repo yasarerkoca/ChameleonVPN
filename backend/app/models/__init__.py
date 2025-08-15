@@ -1,10 +1,17 @@
 # ~/ChameleonVPN/backend/app/models/__init__.py
 
+"""
+Modelleri tek noktadan içe aktarma.
+Not: İlişki hatalarını önlemek için yükleme sırası önemli:
+1) User
+2) Security (User’a back_populates edenler)
+3) Corporate (User’a back_populates edenler)
+4) Diğer domain’ler (proxy, vpn, billing, logs)
+"""
+
 from app.config.database import Base
 
-# ======================
-# USER MODELLERİ
-# ======================
+# 1) USER
 from .user import (
     User,
     UserSession,
@@ -18,72 +25,64 @@ from .user import (
     UserSecurity,
     UserFlagsSettings,
     UserProfile,
-    UserRelationship
+    UserRelationship,
 )
 
-# ======================
-# PROXY MODELLERİ
-# ======================
+# 2) SECURITY (User.back_populates: api_keys, two_factor_tokens, limits, vb.)
+from .security import (
+    APIKey,
+    APIKeyAccessLog,
+    BlockedIP,
+    BlockedIPRange,
+    RefreshTokenBlacklist,
+    TwoFactorToken,
+    UserBlocklist,
+    UserLimit,
+)
+
+# 3) CORPORATE (User.back_populates: corporate_group, corporate_rights_history, admin_rights_changes)
+from .corporate import (
+    CorporateUserGroup,
+    CorporateUserRightsHistory,
+)
+
+# 4) PROXY
 from .proxy import (
     ProxyIP,
     ProxyUsageLog,
-    UserProxyAssignment
+    UserProxyAssignment,
 )
 
-# ======================
-# VPN MODELLERİ
-# ======================
+# 5) VPN
 from .vpn import (
     VPNServer,
     VPNLog,
-    ConnectionAttempt
+    ConnectionAttempt,
 )
 
-# ======================
-# BILLING MODELLERİ
-# ======================
+# 6) BILLING
 from .billing import (
     Plan,
     Payment,
     Membership,
     UserBillingHistory,
-    UserSubscriptionHistory
+    UserSubscriptionHistory,
 )
 
-# ======================
-# CORPORATE MODELLERİ
-# ======================
-from .corporate import (
-    CorporateUserGroup,
-    CorporateUserRightsHistory
-)
-
-# ======================
-# SECURITY MODELLERİ
-# ======================
-from .security import (
-    APIKey,
-    APIKeyAccessLog,
-    BlockedIP,
-    RefreshTokenBlacklist,
-    TwoFactorToken,
-    UserBlocklist,
-    UserLimit
-)
-
-# ======================
-# LOG MODELLERİ
-# ======================
+# 7) LOGS
 from .logs import (
     SystemAlert,
     ConsentLog,
     EmailSmsLog,
     AdminActivityLog,
     AnomalyFraudRecord,
-    UserManualAudit
+    UserManualAudit,
 )
 
 __all__ = [
+    # Base
+    "Base",
+
     # User
     "User",
     "UserSession",
@@ -98,6 +97,20 @@ __all__ = [
     "UserFlagsSettings",
     "UserProfile",
     "UserRelationship",
+
+    # Security
+    "APIKey",
+    "APIKeyAccessLog",
+    "BlockedIP",
+    "BlockedIPRange",
+    "RefreshTokenBlacklist",
+    "TwoFactorToken",
+    "UserBlocklist",
+    "UserLimit",
+
+    # Corporate
+    "CorporateUserGroup",
+    "CorporateUserRightsHistory",
 
     # Proxy
     "ProxyIP",
@@ -116,24 +129,11 @@ __all__ = [
     "UserBillingHistory",
     "UserSubscriptionHistory",
 
-    # Corporate
-    "CorporateUserGroup",
-    "CorporateUserRightsHistory",
-
-    # Security
-    "APIKey",
-    "APIKeyAccessLog",
-    "BlockedIP",
-    "RefreshTokenBlacklist",
-    "TwoFactorToken",
-    "UserBlocklist",
-    "UserLimit",
-
     # Logs
     "SystemAlert",
     "ConsentLog",
     "EmailSmsLog",
     "AdminActivityLog",
     "AnomalyFraudRecord",
-    "UserManualAudit"
+    "UserManualAudit",
 ]
