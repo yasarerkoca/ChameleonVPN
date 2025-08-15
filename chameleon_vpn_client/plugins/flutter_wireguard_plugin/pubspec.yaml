@@ -1,0 +1,37 @@
+name: flutter_wireguard_plugin
+description: "A Flutter plugin to manage WireGuard VPN connections."
+version: 0.0.1
+homepage:
+
+publish_to: 'none'
+environment:
+  sdk: '>=3.3.0 <4.0.0'
+  flutter: '>=3.3.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  plugin_platform_interface: ^2.0.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  plugin:
+    platforms:
+      android:
+        package: com.example.flutter_wireguard_plugin
+        pluginClass: FlutterWireguardPlugin
+      ios:
+        pluginClass: FlutterWireguardPlugin
+      linux:
+        pluginClass: FlutterWireguardPlugin
+      windows:
+        pluginClass: FlutterWireguardPlugin
+      macos:
+        pluginClass: FlutterWireguardPlugin
+
+flutter_wireguard_plugin:
+  path: ./plugins/flutter_wireguard_plugin

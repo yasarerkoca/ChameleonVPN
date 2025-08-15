@@ -1,0 +1,43 @@
+import pytest_asyncio
+import asyncio
+from asgi_lifespan import LifespanManager
+from httpx import AsyncClient
+from fastapi_limiter import FastAPILimiter
+import redis.asyncio as aioredis
+import os
+
+from app.main import app
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from app.config.database import Base, get_db
+
+DATABASE_URL = "postgresql+psycopg2://vpnadmin:iryna@db:5432/chameleonvpn"
+engine = create_engine(DATABASE_URL, pool_pre_ping=True)
+TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+def override_get_db():
+    db = TestingSessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+app.dependency_overrides[get_db] = override_get_db
+
+@pytest_asyncio.fixture(scope="session")
+def event_loop():
+    loop = asyncio.new_event_loop()
+    yield loop
+    loop.close()
+
+@pytest_asyncio.fixture(scope="session", autouse=True)
+async def _startup_limiter():
+    redis_url = os.getenv("REDIS_URL", "redis://redis:6379")
+    redis = await aioredis.from_url(redis_url, encoding="utf-8", decode_responses=True)
+    await FastAPILimiter.init(redis)
+    yield
+
+@pytest_asyncio.fixture()
+async def client(_startup_limiter):
+    async with LifespanManager(app):
+        async with AsyncClient(base_url="http://localhost:8000") as ac:
+            yield ac

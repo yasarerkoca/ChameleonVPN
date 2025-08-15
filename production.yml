@@ -1,0 +1,57 @@
+# ~/ChameleonVPN/production.yml
+version: "3.9"
+
+services:
+  nginx:
+    image: nginx:alpine
+    container_name: chameleon_nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/conf:/etc/nginx/conf.d
+      - ./nginx/certbot/conf:/etc/letsencrypt
+      - ./nginx/certbot/www:/var/www/certbot
+    depends_on:
+      - backend
+    restart: always
+
+  certbot:
+    image: certbot/certbot
+    container_name: chameleon_certbot
+    volumes:
+      - ./nginx/certbot/conf:/etc/letsencrypt
+      - ./nginx/certbot/www:/var/www/certbot
+
+  backend:
+    build:
+      context: ./backend
+    container_name: chameleon_backend
+    env_file:
+      - ./backend/.env
+    volumes:
+      - ./backend:/app
+    command: >
+      uvicorn app.main:app --host 0.0.0.0 --port 8000
+    expose:
+      - "8000"
+    restart: always
+
+  db:
+    image: postgres:14
+    container_name: chameleon_db
+    environment:
+      POSTGRES_DB: chameleonvpn
+      POSTGRES_USER: vpnadmin
+      POSTGRES_PASSWORD: iryna
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: always
+
+  redis:
+    image: redis:7
+    container_name: chameleon_redis
+    restart: always
+
+volumes:
+  postgres_data:
