@@ -31,6 +31,11 @@ app = FastAPI(
     redoc_url="/redoc"
 )
 
+
+@app.get("/healthz")
+async def healthz():
+    return {"ok": True}
+
 Instrumentator().instrument(app).expose(app)
 
 # 🌐 Global Middleware
