@@ -1,15 +1,19 @@
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
-from starlette.responses import Response
-
-# Dokümantasyon/health gibi uçlar DB/Redis'e dokunmasın
-SKIP_PATHS = {"/docs", "/openapi.json", "/redoc", "/metrics", "/healthz"}
+from .common import should_bypass
 
 class LoginBruteForceMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
-        path = request.url.path
-        if path in SKIP_PATHS or path.startswith("/static"):
+        if should_bypass(request):
+            return await call_next(request)
+        try:
+            # Sadece giriş endpoint'lerinde (örnek) kontrol yapılabilir.
+            # Şimdilik geçiş:
+            return await call_next(request)
+        except Exception:
+            # Middleware iç hatasında akışı kesme
             return await call_next(request)
 
-        # TODO: Brute-force kontrolü (Redis/DB) burada uygulanacak
-        return await call_next(request)
+# Fonksiyon şeklinde kullanıldıysa uyumluluk için alias
+async def login_bruteforce_middleware(request, call_next):
+    return await LoginBruteForceMiddleware(None).dispatch(request, call_next)
