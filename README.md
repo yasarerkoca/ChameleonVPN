@@ -7,13 +7,13 @@ ve kullanıcı panelleri, mobil uygulama ve daha fazlasını içerir.
 
 ```
 backend/      # Python API
-web-admin/    # Admin paneli (React)
-web-user/     # Kullanıcı paneli (React)
+frontend/web-admin/    # Admin paneli (React)
+frontend/web-user/     # Kullanıcı paneli (React)
 mobile/       # Flutter mobil uygulama
 chameleonvpn/
 ├── backend/      # API ve VPN sunucusu
-├── web-admin/    # Yönetici paneli
-├── web-user/     # Kullanıcı paneli
+├── frontend/web-admin/    # Yönetici paneli
+├── frontend/web-user/     # Kullanıcı paneli
 ├── mobile/       # Mobil uygulama
 ├── desktop/      # Masaüstü uygulama
 ├── docs/         # Dökümantasyon

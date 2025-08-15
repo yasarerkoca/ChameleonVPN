@@ -9,7 +9,7 @@ Projeye katkı yapmak için:
 Dizinler:
 - backend: Python (API)
 - mobile: Flutter (mobil)
-- web-admin, web-user: React (web)
+- frontend/web-admin, frontend/web-user: React (web)
 - tests: Ek testler
 
 Sorular için issues kısmını kullanabilirsiniz.

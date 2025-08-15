@@ -39,7 +39,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./chameleonvpn/web-admin
+        working-directory: ./frontend/web-admin
     steps:
       - uses: actions/checkout@v3
       - name: Set up Node.js
