@@ -139,3 +139,5 @@ alembic.log
 **/flutter/ephemeral/
 **/.plugin_symlinks/
 **/.npm/
+
+archive/docs_examples/
