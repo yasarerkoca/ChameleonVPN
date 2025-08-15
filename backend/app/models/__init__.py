@@ -40,7 +40,7 @@ from .security import (
     UserLimit,
 )
 
-# 3) CORPORATE (User.back_populates: corporate_group, corporate_rights_history, admin_rights_changes)
+# 3) CORPORATE
 from .corporate import (
     CorporateUserGroup,
     CorporateUserRightsHistory,
