@@ -17,4 +17,4 @@ class CorporateUserGroup(Base):
     is_active = Column(Boolean, default=True)                 # Grup aktif mi?
 
     # İlişki (user.py'da karşılığı: corporate_group = relationship(...))
-    users = relationship('User', backref='corporate_group')
+    users = relationship('User', back_populates='corporate_group')

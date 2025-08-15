@@ -17,7 +17,7 @@ class APIKey(Base):
     revoked = Column(Boolean, default=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
-    user = relationship('User', backref='api_keys')
+    user = relationship('User', back_populates='api_keys')
 
     def __repr__(self):
         return f"<APIKey id={self.id}, user_id={self.user_id}, revoked={self.revoked}>"
