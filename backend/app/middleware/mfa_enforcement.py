@@ -1,3 +1,4 @@
+SKIP_PATHS={"/docs","/openapi.json","/redoc","/metrics"}
 # ~/ChameleonVPN/backend/app/middleware/mfa_enforcement.py
 
 from fastapi import Request
@@ -17,7 +18,11 @@ class MFAEnforcementMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         # Sadece JWT ile login gerektiren endpointlerde çalışsın
         if any(request.url.path.startswith(p) for p in EXEMPT_PATHS):
-            return await call_next(request)
+            
+    if request.url.path in SKIP_PATHS:
+        return await call_next(request)
+    return await call_next(request)
+
         try:
             user = await get_current_user_jwt(request)
             # User login ise ve 2FA doğrulaması yoksa erişimi engelle

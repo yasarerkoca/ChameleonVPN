@@ -1,3 +1,4 @@
+SKIP_PATHS={"/docs","/openapi.json","/redoc","/metrics"}
 import geoip2.database
 from fastapi import Request, HTTPException
 import os
@@ -19,4 +20,8 @@ async def geoip_block_middleware(request: Request, call_next):
     except Exception:
         # GeoIP servis hatası varsa engelleme
         pass
+    
+    if request.url.path in SKIP_PATHS:
+        return await call_next(request)
     return await call_next(request)
+

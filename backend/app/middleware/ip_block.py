@@ -1,3 +1,4 @@
+SKIP_PATHS={"/docs","/openapi.json","/redoc","/metrics"}
 from starlette.middleware.base import BaseHTTPMiddleware
 from fastapi import Request, status
 from fastapi.responses import JSONResponse

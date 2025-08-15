@@ -1,3 +1,4 @@
+SKIP_PATHS={"/docs","/openapi.json","/redoc","/metrics"}
 # ~/ChameleonVPN/backend/app/middleware/anomaly_fraud_detect.py
 
 from fastapi import Request
@@ -53,4 +54,8 @@ class AnomalyFraudDetectMiddleware(BaseHTTPMiddleware):
                     )
         except Exception:
             pass
+        
+    if request.url.path in SKIP_PATHS:
         return await call_next(request)
+    return await call_next(request)
+

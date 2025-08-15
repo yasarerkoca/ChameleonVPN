@@ -1,3 +1,4 @@
+SKIP_PATHS={"/docs","/openapi.json","/redoc","/metrics"}
 # ~/ChameleonVPN/backend/app/middleware/session_hijack.py
 
 from fastapi import Request
@@ -11,7 +12,11 @@ class SessionHijackMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         # Sadece JWT korumalı endpointlerde çalışsın (örn: /auth hariç)
         if request.url.path.startswith("/auth"):
-            return await call_next(request)
+            
+    if request.url.path in SKIP_PATHS:
+        return await call_next(request)
+    return await call_next(request)
+
         # JWT token al
         auth = request.headers.get("authorization")
         if not auth or not auth.lower().startswith("bearer "):

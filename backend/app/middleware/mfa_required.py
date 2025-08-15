@@ -1,3 +1,4 @@
+SKIP_PATHS={"/docs","/openapi.json","/redoc","/metrics"}
 # ~/ChameleonVPN/backend/app/middleware/mfa_required.py
 
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -18,7 +19,11 @@ class MFARequiredMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         # Sadece /auth/login dışındaki her endpointte kontrol
         if any(request.url.path.startswith(path) for path in BYPASS_PATHS):
-            return await call_next(request)
+            
+    if request.url.path in SKIP_PATHS:
+        return await call_next(request)
+    return await call_next(request)
+
         try:
             user = await get_current_user_optional(request)
             if user and not user.is_2fa_verified:
