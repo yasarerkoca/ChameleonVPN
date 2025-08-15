@@ -16,3 +16,5 @@ backend-migrate:
 
 mobile-build:
 	cd chameleon_vpn_client && flutter clean && flutter pub get && flutter build apk
+firebase-deploy:
+	cd infra/firebase && npx firebase deploy --config firebase.json
