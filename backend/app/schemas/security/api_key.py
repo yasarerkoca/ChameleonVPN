@@ -1,32 +1,29 @@
-from pydantic import BaseModel, Field
+# ~/ChameleonVPN/backend/app/schemas/security/api_key.py
 from datetime import datetime
 from typing import Optional
 
+from pydantic import BaseModel, Field
 
-class APIKeyBase(BaseModel):
+
+class APIKeyCreate(BaseModel):
     """
-    API anahtarı bilgisi.
-
-    Attributes:
-        name (str): Anahtar adı (örneğin sistem içi tanım).
-        key (str): Gizli anahtar değeri.
-        is_active (bool): Anahtar aktif mi?
+    API anahtarı oluşturma isteği.
+    Sadece 'key' gönderilir; 'revoked' sunucuda False başlar.
     """
-    name: str = Field(..., example="admin-dashboard")
-    key: str = Field(..., example="sk_test_abc123xyz")
-    is_active: bool = Field(default=True)
+    key: str = Field(..., example="sk_live_xxx")
 
 
-class APIKeyOut(APIKeyBase):
+class APIKeyOut(BaseModel):
     """
-    API anahtarının dışa aktarımı (output) şeması.
-
-    Attributes:
-        id (int): Anahtarın ID'si.
-        created_at (datetime): Oluşturulma zamanı.
+    API anahtarı dışa aktarım şeması (response).
     """
     id: int
-    created_at: Optional[datetime] = Field(None, example="2025-08-01T14:00:00Z")
+    key: str = Field(..., example="sk_live_xxx")
+    revoked: bool = False
+    created_at: Optional[datetime] = None
 
-    class Config:
-        from_attributes = True
+    # Pydantic v2 uyumu: SQLAlchemy instance -> model dönüşümleri
+    model_config = dict(from_attributes=True)
+
+
+__all__ = ["APIKeyCreate", "APIKeyOut"]

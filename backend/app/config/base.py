@@ -1,48 +1,84 @@
 # ~/ChameleonVPN/backend/app/config/base.py
 
-from pydantic_settings import BaseSettings
-from dotenv import load_dotenv
-from typing import List
-import os
+from typing import Optional
+from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import field_validator
+import json
 
-load_dotenv()  # .env dosyasını yükle
 
 class Settings(BaseSettings):
-    # Zorunlu ayarlar
+    """
+    Uygulama yapılandırması (.env + ortam değişkenleri).
+    - extra="ignore": Tanımsız ENV anahtarları hata çıkarmaz.
+    - case_sensitive=False: ENV adları büyük/küçük harf duyarsız.
+    """
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="ignore",
+        case_sensitive=False,
+    )
+
+    # --- Veritabanı ---
     DATABASE_URL: str
-    SECRET_KEY: str
+
+    # --- JWT / Token ---
+    SECRET_KEY: str = "dev-secret"
     ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
-    REFRESH_TOKEN_EXPIRE_DAYS: int = 30
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    REFRESH_TOKEN_EXPIRE_DAYS: int = 7
 
-    SMTP_HOST: str
-    SMTP_PORT: int = 587
-    SMTP_USER: str
-    SMTP_PASS: str
-    SMTP_FROM: str
-
-    REDIS_URL: str
-
-    # Google OAuth
-    GOOGLE_CLIENT_ID: str
-    GOOGLE_CLIENT_SECRET: str
-    GOOGLE_REDIRECT_URI: str
-
-    # Stripe Ödeme Ayarları
-    STRIPE_API_KEY: str
-    STRIPE_PUBLISHABLE_KEY: str
-    STRIPE_WEBHOOK_SECRET: str
-
-    # JWT alternatifleri (opsiyonel)
-    JWT_SECRET_KEY: str = ""
+    # Opsiyonel ayrı JWT alanları
+    JWT_SECRET_KEY: Optional[str] = None
     JWT_ALGORITHM: str = "HS256"
     JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
 
-    # CORS whitelist
-    ALLOWED_ORIGINS: List[str] = ["*"]
+    # --- SMTP (opsiyonel: local dev'de boş kalabilir) ---
+    SMTP_HOST: Optional[str] = None
+    SMTP_PORT: int = 587
+    SMTP_USER: Optional[str] = None
+    SMTP_PASS: Optional[str] = None
+    SMTP_FROM: Optional[str] = None
 
-    class Config:
-        env_file = ".env"
-        case_sensitive = True
+    # --- Stripe (opsiyonel) ---
+    STRIPE_API_KEY: Optional[str] = None
+    STRIPE_WEBHOOK_SECRET: Optional[str] = None
+    STRIPE_PUBLISHABLE_KEY: Optional[str] = None
+
+    # --- Google OAuth (opsiyonel) ---
+    GOOGLE_CLIENT_ID: Optional[str] = None
+    GOOGLE_CLIENT_SECRET: Optional[str] = None
+    GOOGLE_REDIRECT_URI: Optional[str] = None
+
+    # --- Redis ---
+    REDIS_URL: str = "redis://redis:6379"
+
+    # --- CORS ---
+    # .env'de JSON dizesi ('["*"]') veya CSV ("http://a.com,http://b.com") verebilirsiniz.
+    # main.py şu an split(",") yaptığı için burada string saklıyoruz; alttaki validator JSON'u CSV'ye çevirir.
+    ALLOWED_ORIGINS: str = "*"
+
+    # --- Ek bayraklar (env’de vardı) ---
+    ENABLE_DOCS: bool = True
+    UVICORN_WORKERS: int = 2
+
+    @field_validator("ALLOWED_ORIGINS", mode="before")
+    @classmethod
+    def normalize_allowed_origins(cls, v):
+        # JSON list gelirse CSV'ye çevir
+        if isinstance(v, str):
+            s = v.strip()
+            if s.startswith("[") and s.endswith("]"):
+                try:
+                    arr = json.loads(s)
+                    if isinstance(arr, list):
+                        return ",".join(arr)
+                except Exception:
+                    return s
+            return s
+        elif isinstance(v, list):
+            return ",".join(v)
+        return "*"
+
 
 settings = Settings()

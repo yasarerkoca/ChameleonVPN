@@ -10,3 +10,4 @@ from .security import *        # Güvenlik & token bloklama
 from .token import *           # JWT token giriş/yenileme
 from .user import *            # Kullanıcıya ait tüm yapılar
 from .vpn import *             # VPN yapılandırma & sunucu
+from ._base import ORMSchema  # ortak BaseModel
