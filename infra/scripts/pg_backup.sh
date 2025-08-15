@@ -1,7 +1,7 @@
 #!/bin/bash
 
 DATE=$(date +%Y-%m-%d-%H%M)
-BACKUP_DIR="/home/yasarerkoca/db_backups"
+BACKUP_DIR="/var/backups/chameleonvpn"
 DB_NAME="chameleonvpn"
 DB_USER="vpnadmin"
 BACKUP_FILE="$BACKUP_DIR/${DB_NAME}_$DATE.sql.gz"
