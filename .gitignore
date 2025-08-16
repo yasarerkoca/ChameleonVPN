@@ -141,3 +141,12 @@ alembic.log
 **/.npm/
 
 archive/docs_examples/
+
+# Flutter / Android
+chameleon_vpn_client/**/build/
+chameleon_vpn_client/android/.gradle/
+chameleon_vpn_client/android/.idea/
+chameleon_vpn_client/android/local.properties
+chameleon_vpn_client/ios/Pods/
+chameleon_vpn_client/ios/.symlinks/
+chameleon_vpn_client/ios/Flutter/Flutter.podspec
