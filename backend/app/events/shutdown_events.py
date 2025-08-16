@@ -1,12 +1,6 @@
-# app.events.shutdown_events.py
+from app.logs.logger import logger
 
-from fastapi import FastAPI
-from app.config.redis import close_redis_connection
-from app.logs.logger import shutdown_logger
-
-def register_shutdown_events(app: FastAPI):
+def register_shutdown_events(app):
     @app.on_event("shutdown")
-    async def on_shutdown():
-        await close_redis_connection()
-        shutdown_logger()
-        print("🛑 Uygulama kapatılıyor.")
+    async def _shutdown():
+        logger.info("🛑 Shutdown event registered")

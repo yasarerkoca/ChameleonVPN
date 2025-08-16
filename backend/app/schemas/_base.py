@@ -2,7 +2,7 @@
 """
 Pydantic uyum katmanı:
 - V2: model_config = ConfigDict(from_attributes=True)
-- V1: class Config: orm_mode = True
+- V1: class Config: from_attributes = True
 
 Kullanım:
     from app.schemas._base import ORMSchema
@@ -25,7 +25,7 @@ except ImportError:
     class ORMSchema(BaseModel):
         class Config:
             # v1 karşılığı
-            orm_mode = True
+            from_attributes = True
 
 
 __all__ = ["ORMSchema"]
