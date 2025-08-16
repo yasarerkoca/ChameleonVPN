@@ -1,16 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:chameleonvpn/pages/login.dart';
+import 'package:chameleon_vpn_client/pages/login.dart';
 
 void main() {
-  testWidgets('Login form renders and works', (WidgetTester tester) async {
-    await tester.pumpWidget(MaterialApp(home: LoginPage()));
-    expect(find.text('Login'), findsOneWidget);
+  TestWidgetsFlutterBinding.ensureInitialized();
 
-    await tester.enterText(find.byType(TextField).first, 'testuser');
-    await tester.enterText(find.byType(TextField).last, 'testpass');
-    await tester.tap(find.byType(ElevatedButton));
-    await tester.pump();
-    // Mock API cevabı olmadığı için gerçek doğrulama burada olmayacak
+  testWidgets('Login form renders and works', (WidgetTester tester) async {
+    await tester.pumpWidget(const MaterialApp(home: LoginPage()));
+
+    expect(find.byKey(const Key('emailField')), findsOneWidget);
+    expect(find.byKey(const Key('passwordField')), findsOneWidget);
+    expect(find.byKey(const Key('loginButton')), findsOneWidget);
+
+    await tester.enterText(find.byKey(const Key('emailField')), 'a@b.com');
+    await tester.enterText(find.byKey(const Key('passwordField')), '123456');
+    await tester.tap(find.byKey(const Key('loginButton')));
+    await tester.pump(); // SnackBar gösterimi
+
+    expect(find.text('Login success'), findsOneWidget);
   });
 }
