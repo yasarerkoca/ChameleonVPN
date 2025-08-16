@@ -8,12 +8,11 @@ on:
 
 jobs:
   android:
-    name: Mobile Build
+    name: Android AAB Build (no artifacts)
     runs-on: ubuntu-latest
     env:
       FLUTTER_VERSION: "3.22.2"
       ANDROID_NDK_VERSION: "27.0.12077973"
-      # Gradle/Java için daha stabil JVM ayarları
       JAVA_TOOL_OPTIONS: "-Xmx2g"
       GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs='-Xmx2g -Dfile.encoding=UTF-8'"
 
@@ -51,19 +50,13 @@ jobs:
         working-directory: chameleon_vpn_client
         run: flutter pub get
 
-      - name: Build APK (release)
+      # ❗ APK YOK — Resmi mağaza politikası gereği AAB build
+      - name: Build AAB (release)
         working-directory: chameleon_vpn_client
-        run: flutter build apk --release -v
+        run: flutter build appbundle --release -v
 
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: app-release.apk
-          path: chameleon_vpn_client/build/app/outputs/flutter-apk/app-release.apk
-
-      - name: (Tag ise) GitHub Release'a yükle
-        if: startsWith(github.ref, 'refs/tags/')
-        uses: softprops/action-gh-release@v2
-        with:
-          files: |
-            chameleon_vpn_client/build/app/outputs/flutter-apk/app-release.apk
+      # ❗ Artefact / Release upload YOK — mağaza yüklemesi resmi kanaldan yapılacak
+      - name: Policy guard (fail if APK sneaks in)
+        run: |
+          if git grep -nE 'flutter build apk|\.apk\b' -- ':!*.md' ':!*.yml' ':!*.yaml' ; then
+            echo "APK build/upload forbidden by policy."; exit 1; fi

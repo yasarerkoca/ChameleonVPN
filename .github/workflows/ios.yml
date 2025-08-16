@@ -1,0 +1,19 @@
+name: iOS Build (No Artifacts)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  ios:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with: { flutter-version: '3.22.2', channel: 'stable', cache: true }
+      - name: Pub get
+        working-directory: chameleon_vpn_client
+        run: flutter pub get
+      - name: Build iOS (no codesign)
+        working-directory: chameleon_vpn_client
+        run: flutter build ios --release --no-codesign -v
+      # ❗ Artefact yok — TestFlight/App Store yüklemesi resmi kanaldan yapılacak
