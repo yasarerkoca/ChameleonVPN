@@ -1,6 +1,6 @@
 # ~/ChameleonVPN/backend/app/main.py
-from fastapi import FastAPI, Depends, Request
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi import FastAPI, Depends, Request, HTTPException
+from fastapi.responses import JSONResponse   # FileResponse KALDIRILDI
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 from fastapi.routing import APIRoute
@@ -22,7 +22,8 @@ from app.middleware.mfa_enforcement import MFAEnforcementMiddleware
 from app.logs.log_middleware import LoggingMiddleware
 from app.logs.logger import logger
 from app.routers import include_routers
-from app.events import register_startup_events, register_shutdown_events
+from app.events.startup_events import register_startup_events
+from app.events.shutdown_events import register_shutdown_events
 
 import redis.asyncio as aioredis
 import os
@@ -58,8 +59,9 @@ async def healthz():
 # Prometheus /metrics
 Instrumentator().instrument(app).expose(app)
 
-# CORS (Settings üzerinden)
-_allow_all = len(settings.ALLOWED_ORIGINS) == 1 and settings.ALLOWED_ORIGINS[0] == "*"
+# CORS (Settings üzerinden normalize liste)
+_cors = settings.cors_origins()
+_allow_all = (len(_cors) == 1 and _cors[0] == "*")
 allow_credentials = not _allow_all
 
 # 🌐 Global Middleware
@@ -79,7 +81,7 @@ app.add_middleware(
 )
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.ALLOWED_ORIGINS,
+    allow_origins=_cors,                 # <— düzeltildi
     allow_credentials=allow_credentials,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -113,18 +115,11 @@ async def all_exception_handler(request: Request, exc: Exception):
 # 🔗 Router'lar
 include_routers(app)
 
-# 📦 APK İndirme Endpoint'i
+# 📦 APK İndirme Endpoint'i — KALDIRILDI, 410 GONE ile korunuyor
 @app.get("/download/apk", tags=["Utility"])
-def download_apk():
-    apk_path = "/home/yasarerkoca/chameleon_vpn_client/build/app/outputs/flutter-apk/app-release.apk"
-    if not os.path.exists(apk_path):
-        logger.warning("📦 APK dosyası bulunamadı.")
-        return JSONResponse(status_code=404, content={"detail": "APK bulunamadı."})
-    return FileResponse(
-        apk_path,
-        media_type="application/vnd.android.package-archive",
-        filename="chameleon_vpn.apk",
-    )
+def download_apk_gone():
+    # Resmi mağazalar dışı dağıtım YASAK
+    raise HTTPException(status_code=410, detail="Use official store links.")
 
 # 🧪 Rate Limit Test Endpoint'i
 @app.get("/test-limit", dependencies=[Depends(RateLimiter(times=5, seconds=60))], tags=["Utility"])

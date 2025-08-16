@@ -1,6 +1,6 @@
 # ~/ChameleonVPN/backend/app/config/base.py
 
-from typing import Optional
+from typing import Optional, List
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import field_validator
 import json
@@ -33,7 +33,7 @@ class Settings(BaseSettings):
     JWT_ALGORITHM: str = "HS256"
     JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
 
-    # --- SMTP (opsiyonel: local dev'de boş kalabilir) ---
+    # --- SMTP (opsiyonel) ---
     SMTP_HOST: Optional[str] = None
     SMTP_PORT: int = 587
     SMTP_USER: Optional[str] = None
@@ -54,18 +54,18 @@ class Settings(BaseSettings):
     REDIS_URL: str = "redis://redis:6379"
 
     # --- CORS ---
-    # .env'de JSON dizesi ('["*"]') veya CSV ("http://a.com,http://b.com") verebilirsiniz.
-    # main.py şu an split(",") yaptığı için burada string saklıyoruz; alttaki validator JSON'u CSV'ye çevirir.
+    # .env'de JSON dizesi ('["https://a.com","https://b.com"]') veya CSV ("https://a.com,https://b.com")
+    # tutulabilir. Aşağıdaki validator hepsini CSV stringe normalize eder; cors_origins() liste döndürür.
     ALLOWED_ORIGINS: str = "*"
 
-    # --- Ek bayraklar (env’de vardı) ---
+    # --- Ek bayraklar ---
     ENABLE_DOCS: bool = True
     UVICORN_WORKERS: int = 2
 
     @field_validator("ALLOWED_ORIGINS", mode="before")
     @classmethod
     def normalize_allowed_origins(cls, v):
-        # JSON list gelirse CSV'ye çevir
+        # JSON list -> CSV, list -> CSV, diğerleri aynen
         if isinstance(v, str):
             s = v.strip()
             if s.startswith("[") and s.endswith("]"):
@@ -75,10 +75,17 @@ class Settings(BaseSettings):
                         return ",".join(arr)
                 except Exception:
                     return s
-            return s
+            return s or "*"
         elif isinstance(v, list):
             return ",".join(v)
         return "*"
+
+    # FastAPI CORSMiddleware için kullanılacak liste
+    def cors_origins(self) -> List[str]:
+        raw = (self.ALLOWED_ORIGINS or "").strip()
+        if raw in ("", "*"):
+            return ["*"]
+        return [o.strip() for o in raw.split(",") if o.strip()]
 
 
 settings = Settings()
