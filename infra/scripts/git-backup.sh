@@ -5,13 +5,15 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# === Ayarlar ===
+# ==== Ayarlar ====
 REPO_DIR="${REPO_DIR:-$HOME/ChameleonVPN}"
 REMOTE_NAME="${REMOTE_NAME:-github}"
 REMOTE_URL="${REMOTE_URL:-git@github.com:yasarerkoca/ChameleonVPN.git}"
-FPR_EXPECTED="SHA256:wcRqXvyr5V6LP7P6i/LQKWaSgUghpuk7xFwgR+KEOtk"
+FPR_EXPECTED="${FPR_EXPECTED:-SHA256:wcRqXvyr5V6LP7P6i/LQKWaSgUghpuk7xFwgR+KEOtk}"
 
-# === SSH key’i fingerprint’e göre bul ===
+trap 'echo "HATA: Satır $LINENO başarısız." >&2' ERR
+
+# ==== SSH anahtarı (fingerprint ile) ====
 ID_FILE="${ID_FILE:-}"
 if [[ -z "${ID_FILE}" ]]; then
   for pub in "$HOME"/.ssh/*.pub; do
@@ -24,26 +26,42 @@ if [[ -z "${ID_FILE}" ]]; then
   done
 fi
 if [[ -z "${ID_FILE:-}" ]]; then
-  echo "HATA: Fingerprint eşleşen SSH key bulunamadı. ID_FILE ile özel anahtar yolunu verin." >&2
+  echo "HATA: Fingerprint eşleşen SSH key bulunamadı. ID_FILE ile belirtin." >&2
   exit 1
 fi
 chmod 600 "$ID_FILE" || true
 export GIT_SSH_COMMAND="ssh -i $ID_FILE -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new"
 
-# === Repo yedekle ===
+# ==== Repo hazırla ====
 cd "$REPO_DIR"
+git config --global --add safe.directory "$REPO_DIR" || true
 git rev-parse --git-dir >/dev/null 2>&1 || git init -b main
 git show-ref --verify --quiet refs/heads/main || git branch -M main
 
 if ! git remote get-url "$REMOTE_NAME" >/dev/null 2>&1; then
   git remote add "$REMOTE_NAME" "$REMOTE_URL"
+else
+  git remote set-url "$REMOTE_NAME" "$REMOTE_URL"
 fi
 
+# ==== Senkronize et (rebase + autostash) ====
+git fetch "$REMOTE_NAME" || true
+# Upstream yoksa ayarla
+if ! git rev-parse --abbrev-ref --symbolic-full-name @{u} >/dev/null 2>&1; then
+  git branch --set-upstream-to="$REMOTE_NAME"/main main || true
+fi
+# Çakışmaları minimuma indirmek için autostash'li rebase
+git pull --rebase --autostash "$REMOTE_NAME" main || true
+
+# ==== Değişiklikleri commit et ====
 git add -A
 if ! git diff --cached --quiet; then
-  git commit -m "Auto backup: $(date -Iseconds)"
+  git commit -m "chore(backup): $(date -Iseconds)"
 fi
 
+# ==== Push ====
 git push -u "$REMOTE_NAME" main
 git push "$REMOTE_NAME" --tags
+
 echo "OK: GitHub yedek tamam."
+

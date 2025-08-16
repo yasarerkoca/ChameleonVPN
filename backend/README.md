@@ -1,0 +1,30 @@
+# Chameleon Backend (FastAPI)
+
+## Çalıştırma (Docker)
+docker compose up -d --build
+# Swagger: http://localhost:8000/docs
+
+## Lokal Geliştirme
+python -m venv venv && source venv/bin/activate
+pip install -r requirements.txt
+uvicorn app.main:app --host 0.0.0.0 --port 8000
+
+## Alembic
+alembic upgrade head
+alembic revision --autogenerate -m "change"
+alembic downgrade -1
+
+## Test
+pytest -q
+
+## Sağlık/Koruma
+- /healthz, /metrics aktif
+- Rate limit: Redis
+- Port kilitlenirse: `fuser -k 8000/tcp`
+
+## ENV (özet)
+- DB_URL=postgresql+psycopg2://vpnadmin:PASS@db:5432/chameleonvpn
+- REDIS_URL=redis://redis:6379/0
+- SECRET_KEY=change-me
+- JWT_ALGO=HS256
+- OAUTH_GOOGLE_CLIENT_ID=...

@@ -1,52 +1,105 @@
 name: CI
-
 on: [push, pull_request]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   backend:
+    name: Backend (FastAPI)
     runs-on: ubuntu-latest
+    services:
+      db:
+        image: postgres:14
+        env:
+          POSTGRES_USER: vpnadmin
+          POSTGRES_PASSWORD: iryna
+          POSTGRES_DB: chameleonvpn
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd="pg_isready -U vpnadmin -d chameleonvpn"
+          --health-interval=10s --health-timeout=5s --health-retries=5
+      redis:
+        image: redis:7
+        ports: ["6379:6379"]
     defaults:
       run:
-        working-directory: ./chameleonvpn/backend
+        working-directory: ./backend
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+
       - name: Set up Python
+      # Proje 3.10 ile stabil
         uses: actions/setup-python@v5
         with:
-          python-version: 3.10
-      - name: Install dependencies
-        run: pip install -r requirements.txt
-      - name: Run backend tests
-        run: pytest app/test_app.py
+          python-version: "3.10"
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('backend/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install deps
+        run: |
+          python -m pip install -U pip
+          pip install -r requirements.txt
+
+      - name: Alembic upgrade head
+        env:
+          DB_URL: postgresql+psycopg2://vpnadmin:iryna@localhost:5432/chameleonvpn
+        run: |
+          sed -i 's#^sqlalchemy.url = .*#sqlalchemy.url = '"${DB_URL}"'#' alembic.ini || true
+          alembic upgrade head
+
+      - name: Pytest
+        env:
+          DATABASE_URL: postgresql+psycopg2://vpnadmin:iryna@localhost:5432/chameleonvpn
+          DB_URL: postgresql+psycopg2://vpnadmin:iryna@localhost:5432/chameleonvpn
+          REDIS_URL: redis://localhost:6379/0
+          SECRET_KEY: test-secret
+        run: pytest -q
+
+      - name: Lint (flake8)
+        run: |
+          pip install flake8
+          flake8 app || true
 
   mobile:
+    name: Mobile (Flutter)
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./chameleonvpn/mobile
+        working-directory: ./mobile
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.10.6"
-      - name: Install dependencies
+          channel: "stable"   # stabil kalması için
+          cache: true
+      - name: Flutter deps
         run: flutter pub get
-      - name: Run widget tests
+      - name: Widget tests
         run: flutter test
 
   web:
+    name: Web-Admin (Node)
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: ./frontend/web-admin
     steps:
-      - uses: actions/checkout@v3
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
         with:
           node-version: "18"
-      - name: Install dependencies
+          cache: "npm"
+      - name: Install deps
         run: npm ci
       - name: Run tests
         run: npm test -- --watchAll=false
