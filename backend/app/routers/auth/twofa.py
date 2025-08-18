@@ -11,7 +11,7 @@ from app.models.security.two_factor_tokens import TwoFactorToken
 from app.schemas.user.user_base import TwoFactorVerifyRequest
 from app.schemas.token.token_out import TokenOut
 from app.utils.auth.auth_utils import get_current_user
-from app.utils.token.token_utils import create_access_token, create_refresh_token
+from app.utils.token import create_access_token, create_refresh_token
 
 router = APIRouter(
     prefix="/auth/2fa",

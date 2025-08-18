@@ -24,4 +24,24 @@ class RunnerTests: XCTestCase {
     waitForExpectations(timeout: 1)
   }
 
+  func testConnectDisconnect() {
+    let plugin = FlutterWireguardPlugin()
+
+    let connectCall = FlutterMethodCall(methodName: "connect", arguments: ["config": "[Interface]\nPrivateKey = x\nAddress = 10.0.0.2/32"])
+    let connectExpectation = expectation(description: "connect result")
+    plugin.handle(connectCall) { result in
+      XCTAssertNotNil(result)
+      connectExpectation.fulfill()
+    }
+
+    let disconnectCall = FlutterMethodCall(methodName: "disconnect", arguments: [])
+    let disconnectExpectation = expectation(description: "disconnect result")
+    plugin.handle(disconnectCall) { result in
+      XCTAssertNotNil(result)
+      disconnectExpectation.fulfill()
+    }
+
+    waitForExpectations(timeout: 1)
+  }
+
 }

@@ -7,7 +7,7 @@ services:
     environment:
       POSTGRES_DB: chameleonvpn
       POSTGRES_USER: vpnadmin
-      POSTGRES_PASSWORD: iryna
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
       - "5432:5432"
     volumes:
@@ -41,7 +41,7 @@ services:
     command: >
       /bin/sh -lc '
       mkdir -p /app/app/logs /var/log/backend &&
-      chmod -R 777 /app/app/logs /var/log/backend &&
+      chmod -R 770 /app/app/logs /var/log/backend &&
       alembic upgrade head &&
       exec uvicorn app.main:app --host 0.0.0.0 --port 8000 --proxy-headers --workers ${UVICORN_WORKERS:-2}
       '

@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from app.utils.db.db_utils import get_db
 from app.models.user.user import User
 from app.utils.auth.auth_utils import get_password_hash, is_strong_password
-from app.utils.token.token_utils import create_password_reset_token, verify_password_reset_token
+from app.utils.token import create_password_reset_token, verify_password_reset_token
 from app.utils.email.email_core import send_email_async
 import os
 

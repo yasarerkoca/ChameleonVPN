@@ -37,6 +37,52 @@ docker-compose up --build
 
 Her modül kendi klasöründe ayrıntılı bir `README.md` dosyası barındırır.
 
+## ⚙️ Gereksinimler
+
+- Flutter 3.3+
+- Hedef platformda WireGuard araçlarının kurulu olması (`wg-quick`, `wireguard.exe` vb.)
+- iOS ve macOS için Network Extension yetkisi
+- Android tarafında root erişimi veya WireGuard SDK
+
+## 🔌 Kullanım Örneği
+
+Aşağıdaki örnek, WireGuard eklentisi ile bir tünelin nasıl başlatılıp durdurulacağını gösterir:
+
+```dart
+const config = '''
+[Interface]
+PrivateKey = <private-key>
+Address = 10.0.0.2/32
+
+[Peer]
+PublicKey = <peer-public-key>
+AllowedIPs = 0.0.0.0/0
+Endpoint = vpn.example.com:51820
+''';
+
+final channel = const MethodChannel('flutter_wireguard_plugin');
+
+Future<void> connect() async {
+  await channel.invokeMethod('connect', {'config': config});
+}
+
+Future<void> disconnect() async {
+  await channel.invokeMethod('disconnect');
+}
+```
+
+
+## ⚙️ Ortam Değişkenleri
+
+Uygulamayı Docker ile çalıştırmadan önce aşağıdaki ortam değişkeninin tanımlanması gerekir:
+
+- `POSTGRES_PASSWORD` – PostgreSQL veritabanı parolası.
+
+İsteğe bağlı değişkenler:
+
+- `UVICORN_WORKERS` – Uvicorn işçi sayısı (varsayılan `2`).
+
+
 ## 📚 Dokümantasyon ve Katkı
 
 Ek belgeler için `chameleonvpn/docs/` dizinine göz atın. Katkıda bulunmak
@@ -44,4 +90,5 @@ isteyenler `CONTRIBUTING.md` dosyasını inceleyebilir.
 
 ## 🛡️ Lisans
 
-Bütün hakları Yaşar Erkoca'a aittir.  
+Bütün hakları Yaşar Erkoca'a aittir.
+Ayrıntılar için `chameleon_vpn_client/plugins/flutter_wireguard_plugin/LICENSE` dosyasına bakın.  

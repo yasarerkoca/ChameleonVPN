@@ -24,4 +24,18 @@ internal class FlutterWireguardPluginTest {
 
     Mockito.verify(mockResult).success("Android " + android.os.Build.VERSION.RELEASE)
   }
+  @Test
+  fun onMethodCall_connectAndDisconnect_returnsBoolean() {
+    val plugin = FlutterWireguardPlugin()
+
+    val connectCall = MethodCall("connect", mapOf("config" to "[Interface]\nPrivateKey = x\nAddress = 10.0.0.2/32"))
+    val connectResult: MethodChannel.Result = Mockito.mock(MethodChannel.Result::class.java)
+    plugin.onMethodCall(connectCall, connectResult)
+    Mockito.verify(connectResult).success(Mockito.anyBoolean())
+
+    val disconnectCall = MethodCall("disconnect", null)
+    val disconnectResult: MethodChannel.Result = Mockito.mock(MethodChannel.Result::class.java)
+    plugin.onMethodCall(disconnectCall, disconnectResult)
+    Mockito.verify(disconnectResult).success(Mockito.anyBoolean())
+  }
 }

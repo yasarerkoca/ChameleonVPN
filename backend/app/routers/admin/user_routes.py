@@ -7,14 +7,14 @@ from app.models.user.user import User
 from app.models.user.user_notification import UserNotification
 from app.models.corporate.corporate_user_rights_history import CorporateUserRightsHistory
 from app.utils.db.db_utils import get_db
-from app.utils.auth.auth_utils import get_current_user_optional
+from app.utils.auth.auth_utils import get_current_user
 
 router = APIRouter(
     prefix="/admin/user-management",
     tags=["admin-user-management"]
 )
 
-def admin_required(current_user: User = Depends(get_current_user_optional)):
+def admin_required(current_user: User = Depends(get_current_user)):
     if not current_user or not current_user.is_admin:
         raise HTTPException(status_code=403, detail="Admin yetkisi gerekli")
     return current_user
@@ -34,13 +34,13 @@ def list_users(db: Session = Depends(get_db), _: User = Depends(admin_required))
 
 # --- Kullanıcı Silme ---
 @router.delete("/users/{user_id}", summary="Kullanıcıyı sil")
-def delete_user(user_id: int, db: Session = Depends(get_db), _: User = Depends(admin_required)):
+def delete_user(user_id: int, db: Session = Depends(get_db), current_user: User = Depends(admin_required)):
     user = db.query(User).get(user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     db.add(CorporateUserRightsHistory(
         user_id=user.id,
-        changed_by_admin_id=1,
+        changed_by_admin_id=current_user.id,
         field_changed="deleted",
         old_value="active",
         new_value="deleted",

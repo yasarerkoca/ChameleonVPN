@@ -17,8 +17,6 @@ from app.middleware.mfa_enforce import MFAEnforceMiddleware
 from app.middleware.login_bruteforce import LoginBruteForceMiddleware
 from app.middleware.anomaly_fraud_detect import AnomalyFraudDetectMiddleware
 from app.middleware.session_hijack import SessionHijackMiddleware
-from app.middleware.mfa_required import MFARequiredMiddleware
-from app.middleware.mfa_enforcement import MFAEnforcementMiddleware
 from app.logs.log_middleware import LoggingMiddleware
 from app.logs.logger import logger
 from app.routers import include_routers
@@ -73,11 +71,10 @@ app.add_middleware(IPBlockMiddleware)
 app.add_middleware(LoginBruteForceMiddleware)
 app.add_middleware(AnomalyFraudDetectMiddleware)
 app.add_middleware(SessionHijackMiddleware)
-app.add_middleware(MFARequiredMiddleware)
-app.add_middleware(MFAEnforcementMiddleware)
 app.add_middleware(
     SessionMiddleware,
     secret_key=settings.SECRET_KEY or os.getenv("SECRET_KEY", "dev-secret"),
+    secret_key=settings.SESSION_SECRET_KEY,
 )
 app.add_middleware(
     CORSMiddleware,

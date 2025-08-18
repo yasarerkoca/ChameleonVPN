@@ -12,9 +12,10 @@ from passlib.context import CryptContext
 from jose import jwt, JWTError
 
 from app.models.user.user import User
-from app.services.token_service import decode_token
+from app.utils.token import decode_token
 from app.utils.db.db_utils import get_db
 from app.config.base import settings
+from app.config.database import SessionLocal
 
 logger = logging.getLogger(__name__)
 
@@ -103,11 +104,8 @@ def verify_email_verification_token(token: str) -> Optional[str]:
         raise HTTPException(status_code=400, detail="Token süresi dolmuş.")
     except JWTError:
         raise HTTPException(status_code=400, detail="Geçersiz token.")
-
-def get_current_user_jwt(request: Request, db: Session = Depends(get_db)) -> User:
-    """
-    JWT Token ile doğrudan kullanıcı bilgisini çeker (örneğin middleware kullanımı için).
-    """
+async def get_current_user_jwt(request: Request) -> User:
+    """JWT token'ı doğrudan isteğin Authorization başlığından çözüp kullanıcıyı döner."""
     auth_header = request.headers.get("Authorization")
     if not auth_header or not auth_header.startswith("Bearer "):
         raise HTTPException(status_code=401, detail="Token eksik veya hatalı")
@@ -117,7 +115,11 @@ def get_current_user_jwt(request: Request, db: Session = Depends(get_db)) -> Use
         user_id = payload.get("user_id")
         if user_id is None:
             raise HTTPException(status_code=401, detail="Geçersiz token (user_id eksik)")
-        user = db.query(User).filter(User.id == user_id).first()
+        db = SessionLocal()
+        try:
+            user = db.query(User).filter(User.id == user_id).first()
+        finally:
+            db.close()
         if not user:
             raise HTTPException(status_code=401, detail="Kullanıcı bulunamadı")
         return user

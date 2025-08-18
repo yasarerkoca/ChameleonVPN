@@ -10,3 +10,10 @@
 ## Monitoring
 - Prometheus target: backend:8000/metrics
 - Grafana dashboard: backend request/latency
+
+## Nginx Reload
+- Konfigürasyon değişikliklerinden sonra Nginx'i yeniden yükleyin:
+
+```bash
+docker compose exec nginx nginx -s reload
+```

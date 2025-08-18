@@ -3,7 +3,7 @@ from authlib.integrations.starlette_client import OAuth
 from starlette.config import Config
 from sqlalchemy.orm import Session
 from app.crud.user.basic_crud import get_user_by_email, create_user
-from app.utils.token.token_utils import create_access_token
+from app.utils.token import create_access_token
 from app.utils.db.db_utils import get_db
 from app.utils.oauth.google_oauth_utils import get_user_from_google_token
 

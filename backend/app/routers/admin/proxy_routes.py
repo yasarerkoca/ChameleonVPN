@@ -4,7 +4,7 @@ from typing import Optional, List
 from pydantic import BaseModel, Field
 
 from app.utils.db.db_utils import get_db
-from app.utils.auth.auth_utils import get_current_user_optional
+from app.utils.auth.auth_utils import get_current_user
 from app.models.user.user import User
 from app.models.proxy.proxy_ip import ProxyIP
 from app.models.proxy.proxy_usage_log import ProxyUsageLog
@@ -17,7 +17,7 @@ router = APIRouter(
     tags=["admin-proxy"]
 )
 
-def admin_required(current_user: User = Depends(get_current_user_optional)):
+def admin_required(current_user: User = Depends(get_current_user)):
     if not current_user or not current_user.is_admin:
         raise HTTPException(status_code=403, detail="Admin yetkisi gerekli")
     return current_user
@@ -104,7 +104,7 @@ def set_user_quota(
     user_id: int,
     payload: QuotaRequest,
     db: Session = Depends(get_db),
-    _: User = Depends(admin_required)
+    current_user: User = Depends(admin_required)
 ):
     user = db.query(User).get(user_id)
     if not user:
@@ -114,7 +114,7 @@ def set_user_quota(
     db.commit()
     db.add(CorporateUserRightsHistory(
         user_id=user.id,
-        changed_by_admin_id=1,  # TODO: Aktif admin id ile değiştir
+        changed_by_admin_id=current_user.id,
         field_changed="proxy_quota_gb",
         old_value=str(old_quota),
         new_value=str(payload.quota_gb),
@@ -128,7 +128,7 @@ def set_group_quota(
     group_id: int,
     payload: QuotaRequest,
     db: Session = Depends(get_db),
-    _: User = Depends(admin_required)
+    current_user: User = Depends(admin_required)
 ):
     group = db.query(CorporateUserGroup).get(group_id)
     if not group or not group.users:
@@ -138,7 +138,7 @@ def set_group_quota(
         user.proxy_quota_gb = payload.quota_gb
         db.add(CorporateUserRightsHistory(
             user_id=user.id,
-            changed_by_admin_id=1,  # TODO: Aktif admin id ile değiştir
+            changed_by_admin_id=current_user.id,
             field_changed="proxy_quota_gb",
             old_value=str(old_quota),
             new_value=str(payload.quota_gb),

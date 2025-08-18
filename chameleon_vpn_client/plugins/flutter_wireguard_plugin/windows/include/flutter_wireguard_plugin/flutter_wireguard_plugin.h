@@ -26,6 +26,8 @@ class FlutterWireguardPlugin : public flutter::Plugin {
   void HandleMethodCall(
       const flutter::MethodCall<flutter::EncodableValue>& call,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result);
+
+  std::wstring last_config_path_;
 };
 
 }  // namespace flutter_wireguard_plugin

@@ -7,14 +7,14 @@ from app.models.user.user import User
 from app.models.corporate.corporate_user_group import CorporateUserGroup
 from app.models.corporate.corporate_user_rights_history import CorporateUserRightsHistory
 from app.utils.db.db_utils import get_db
-from app.utils.auth.auth_utils import get_current_user_optional
+from app.utils.auth.auth_utils import get_current_user
 
 router = APIRouter(
     prefix="/admin/proxy-limit",
     tags=["admin-proxy-limit"]
 )
 
-def admin_required(current_user: User = Depends(get_current_user_optional)):
+def admin_required(current_user: User = Depends(get_current_user)):
     if not current_user or not current_user.is_admin:
         raise HTTPException(status_code=403, detail="Admin yetkisi gerekli")
     return current_user
@@ -27,7 +27,7 @@ def set_user_proxy_count(
     user_id: int,
     payload: ProxyLimitRequest,
     db: Session = Depends(get_db),
-    _: User = Depends(admin_required)
+    current_user: User = Depends(admin_required)
 ):
     user = db.query(User).get(user_id)
     if not user:
@@ -37,7 +37,7 @@ def set_user_proxy_count(
     db.commit()
     db.add(CorporateUserRightsHistory(
         user_id=user.id,
-        changed_by_admin_id=1,  # TODO: Giriş yapan admin id'sini ekle
+        changed_by_admin_id=current_user.id,
         field_changed="active_proxy_count",
         old_value=str(old_count),
         new_value=str(payload.count),
@@ -51,7 +51,7 @@ def set_group_proxy_count(
     group_id: int,
     payload: ProxyLimitRequest,
     db: Session = Depends(get_db),
-    _: User = Depends(admin_required)
+    current_user: User = Depends(admin_required)
 ):
     group = db.query(CorporateUserGroup).get(group_id)
     if not group or not group.users:
@@ -61,7 +61,7 @@ def set_group_proxy_count(
         user.active_proxy_count = payload.count
         db.add(CorporateUserRightsHistory(
             user_id=user.id,
-            changed_by_admin_id=1,  # TODO: Giriş yapan admin id'sini ekle
+            changed_by_admin_id=current_user.id,
             field_changed="active_proxy_count",
             old_value=str(old_count),
             new_value=str(payload.count),

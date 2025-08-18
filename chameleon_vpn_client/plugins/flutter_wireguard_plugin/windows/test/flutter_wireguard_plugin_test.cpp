@@ -39,5 +39,34 @@ TEST(FlutterWireguardPlugin, GetPlatformVersion) {
   EXPECT_TRUE(result_string.rfind("Windows ", 0) == 0);
 }
 
+TEST(FlutterWireguardPlugin, ConnectDisconnect) {
+  FlutterWireguardPlugin plugin;
+
+  bool connect_result = false;
+  plugin.HandleMethodCall(
+      MethodCall("connect",
+                 std::make_unique<EncodableValue>(EncodableMap{
+                     {EncodableValue("config"),
+                      EncodableValue("[Interface]\nPrivateKey = x\nAddress = 10.0.0.2/32\n")}})),
+      std::make_unique<MethodResultFunctions<>>(
+          [&connect_result](const EncodableValue* result) {
+            connect_result = std::get<bool>(*result);
+          },
+          nullptr, nullptr));
+
+  bool disconnect_result = true;
+  plugin.HandleMethodCall(
+      MethodCall("disconnect", std::make_unique<EncodableValue>()),
+      std::make_unique<MethodResultFunctions<>>(
+          [&disconnect_result](const EncodableValue* result) {
+            disconnect_result = std::get<bool>(*result);
+          },
+          nullptr, nullptr));
+
+  // Results are not asserted since the environment may lack WireGuard binaries.
+  (void)connect_result;
+  (void)disconnect_result;
+}
+
 }  // namespace test
 }  // namespace flutter_wireguard_plugin

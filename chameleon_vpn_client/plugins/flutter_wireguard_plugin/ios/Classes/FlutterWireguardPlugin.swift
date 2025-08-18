@@ -1,8 +1,10 @@
 import Flutter
 import UIKit
+import NetworkExtension
 
 public class FlutterWireguardPlugin: NSObject, FlutterPlugin {
   private var isConnected = false
+  private var manager: NETunnelProviderManager?
 
   public static func register(with registrar: FlutterPluginRegistrar) {
     let channel = FlutterMethodChannel(name: "flutter_wireguard_plugin", binaryMessenger: registrar.messenger())
@@ -33,18 +35,52 @@ public class FlutterWireguardPlugin: NSObject, FlutterPlugin {
     }
   }
 
-  // TODO: Gerçek WireGuard bağlantısını başlatmak için native iOS kodunu buraya yaz
   private func connectWireGuard(config: String) -> Bool {
-    // Şimdilik sadece dummy olarak true döndürüyoruz
-    // Burada WireGuard SDK veya sistem çağrısı ile bağlantıyı başlatabilirsin
-    isConnected = true
-    return true
+    var success = false
+    let semaphore = DispatchSemaphore(value: 0)
+    let mgr = NETunnelProviderManager()
+    mgr.loadFromPreferences { error in
+      if let error = error {
+        NSLog("Error loading preferences: \(error)")
+        semaphore.signal()
+        return
+      }
+
+      let proto = NETunnelProviderProtocol()
+      proto.providerBundleIdentifier = "com.example.wireguard.extension"
+      proto.providerConfiguration = ["config": config]
+      proto.serverAddress = "WireGuard"
+      mgr.protocolConfiguration = proto
+      mgr.localizedDescription = "WireGuard"
+      mgr.isEnabled = true
+      mgr.saveToPreferences { error in
+        if let error = error {
+          NSLog("Error saving preferences: \(error)")
+          semaphore.signal()
+          return
+        }
+        do {
+          try mgr.connection.startVPNTunnel()
+          self.manager = mgr
+          self.isConnected = true
+          success = true
+        } catch {
+          NSLog("Failed to start tunnel: \(error)")
+        }
+        semaphore.signal()
+      }
+    }
+    _ = semaphore.wait(timeout: .now() + 10)
+    return success
   }
 
-  // TODO: WireGuard bağlantısını kesmek için native iOS kodunu buraya yaz
   private func disconnectWireGuard() -> Bool {
-    // Bağlantıyı kesmek için gerçek kod burada olacak
-    isConnected = false
-    return true
+    if let mgr = manager {
+      mgr.connection.stopVPNTunnel()
+      manager = nil
+      isConnected = false
+      return true
+    }
+    return false
   }
 }
