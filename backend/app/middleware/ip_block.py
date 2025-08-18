@@ -1,4 +1,5 @@
 # ~/ChameleonVPN/backend/app/middleware/ip_block.py
+from fastapi import HTTPException
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from .common import should_bypass
@@ -38,12 +39,20 @@ class IPBlockMiddleware(BaseHTTPMiddleware):
                 )
 
                 try:
+                    # IP veritabanında engelliyse 403 döndür
                     if is_ip_blocked(db, client_ip):
-                        # Şimdilik prod’u kırmamak için sadece akışı sürdür.
-                        # İstersen burada 403 dönecek şekilde değiştirebiliriz.
-                        pass
+                        raise HTTPException(status_code=403, detail="IP bloklandı")
                 finally:
                     db.close()
+
+            except HTTPException:
+                if db:
+                    try:
+                        db.close()
+                    except Exception:
+                        pass
+                raise
+
             except Exception:
                 if db:
                     try:

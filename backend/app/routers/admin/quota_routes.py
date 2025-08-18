@@ -32,7 +32,7 @@ def set_user_quota(
     user_id: int,
     payload: QuotaRequest,
     db: Session = Depends(get_db),
-    _: User = Depends(admin_required)
+    admin: User = Depends(admin_required)
 ):
     user = db.query(User).get(user_id)
     if not user:
@@ -42,7 +42,7 @@ def set_user_quota(
     db.commit()
     db.add(CorporateUserRightsHistory(
         user_id=user.id,
-        changed_by_admin_id=1,  # TODO: Aktif admin id'yi buradan ekle
+        changed_by_admin_id=admin.id,
         field_changed="proxy_quota_gb",
         old_value=str(old_quota),
         new_value=str(payload.quota_gb),
@@ -56,7 +56,7 @@ def set_group_quota(
     group_id: int,
     payload: QuotaRequest,
     db: Session = Depends(get_db),
-    _: User = Depends(admin_required)
+    admin: User = Depends(admin_required)
 ):
     group = db.query(CorporateUserGroup).get(group_id)
     if not group or not group.users:
@@ -66,7 +66,7 @@ def set_group_quota(
         user.proxy_quota_gb = payload.quota_gb
         db.add(CorporateUserRightsHistory(
             user_id=user.id,
-            changed_by_admin_id=1,  # TODO: Aktif admin id'yi buradan ekle
+            changed_by_admin_id=admin.id,
             field_changed="proxy_quota_gb",
             old_value=str(old_quota),
             new_value=str(payload.quota_gb),

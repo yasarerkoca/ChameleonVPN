@@ -24,7 +24,6 @@ from app.events.startup_events import register_startup_events
 from app.events.shutdown_events import register_shutdown_events
 
 import redis.asyncio as aioredis
-import os
 
 
 # --- OpenAPI'de benzersiz operationId üretimi ---
@@ -73,12 +72,11 @@ app.add_middleware(AnomalyFraudDetectMiddleware)
 app.add_middleware(SessionHijackMiddleware)
 app.add_middleware(
     SessionMiddleware,
-    secret_key=settings.SECRET_KEY or os.getenv("SECRET_KEY", "dev-secret"),
     secret_key=settings.SESSION_SECRET_KEY,
 )
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=_cors,                 # <— düzeltildi
+    allow_origins=_cors,
     allow_credentials=allow_credentials,
     allow_methods=["*"],
     allow_headers=["*"],
