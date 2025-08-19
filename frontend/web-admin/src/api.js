@@ -1,62 +1,4 @@
-// frontend/web-admin/src/api.js
-import axios from 'axios';
-import { notifyError } from './middleware.js';
-
-// ==========================
-// Axios Instance
-// ==========================
-const api = axios.create({
-  baseURL: process.env.API_BASE_URL || '/api',
-});
-
-// ==========================
-// Request Interceptor
-// ==========================
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('accessToken');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
-
-// ==========================
-// Response Interceptor
-// ==========================
-api.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    const { config, response } = error;
-
-    if (response && response.status === 401 && !config._retry) {
-      config._retry = true;
-      try {
-        const refreshToken = localStorage.getItem('refreshToken');
-        if (!refreshToken) throw new Error('No refresh token');
-
-        const { data } = await axios.post(
-          `${process.env.API_BASE_URL || '/api'}/refresh`,
-          { refreshToken }
-        );
-
-        localStorage.setItem('accessToken', data.accessToken);
-        config.headers.Authorization = `Bearer ${data.accessToken}`;
-        return api(config);
-      } catch (refreshError) {
-        return Promise.reject(refreshError);
-      }
-    }
-
-    if (response && (response.status === 429 || response.status >= 500)) {
-      notifyError(response);
-    }
-    return Promise.reject(error);
-  }
-);
-
-// ==========================
-// Auth Functions
-// ==========================
+@@ -60,35 +60,45 @@ api.interceptors.response.use(
 export function setAuthTokens(tokens) {
   localStorage.setItem('accessToken', tokens.accessToken);
   localStorage.setItem('refreshToken', tokens.refreshToken);
@@ -81,6 +23,16 @@ export const fetchTodo = () =>
 
 export const fetchUsers = () =>
   api.get('/users').then((res) => res.data);
+
+// CRUD helpers for user management used in admin flows
+export const createUser = (user) =>
+  api.post('/users', user).then((res) => res.data);
+
+export const updateUser = (id, user) =>
+  api.put(`/users/${id}`, user).then((res) => res.data);
+
+export const deleteUser = (id) =>
+  api.delete(`/users/${id}`).then((res) => res.status === 200);
 
 export const fetchSubscriptions = () =>
   api.get('/posts').then((res) => res.data);

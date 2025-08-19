@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import Users from '../pages/Users';
-import * as api from '../api';
+import * as api from '../lib/api';
 
 afterEach(() => {
   jest.restoreAllMocks();

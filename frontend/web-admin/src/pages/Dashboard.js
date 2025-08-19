@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { fetchTodo } from '../api';
+import { fetchTodo } from '../lib/api';
 
 export default function Dashboard() {
   const [todo, setTodo] = useState(null);

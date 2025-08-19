@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { post } from '../lib/api';
 
 /**
  * Mock payment flow demonstrating how a user might submit
@@ -10,12 +11,14 @@ function PaymentFlow() {
   const [method, setMethod] = useState('credit');
   const [submitted, setSubmitted] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitted(true);
-    // Placeholder: real implementation would process the payment
-    // via an API call.
-    console.log('Processing payment', { amount, method });
+    try {
+      await post('/payments', { amount, method });
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   return (

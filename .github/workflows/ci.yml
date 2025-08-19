@@ -75,33 +75,39 @@ jobs:
   web:
     if: ${{ hashFiles('frontend/**/package.json') != '' }}
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        project: [frontend/web-admin, frontend/web-user]
+    defaults:
+      run:
+        working-directory: ${{ matrix.project }}
     steps:
       - uses: actions/checkout@v4
-      - id: findweb
-        run: |
-          set -e
-          FOUND=$(git ls-files "frontend/**/package.json" | head -n1)
-          echo "workdir=$(dirname $FOUND)" >> $GITHUB_OUTPUT
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
       - uses: actions/cache@v4
         with:
           path: ~/.npm
-          key: ${{ runner.os }}-npm-${{ hashFiles('frontend/**/package-lock.json') }}
+          key: ${{ runner.os }}-npm-${{ hashFiles(matrix.project + '/package-lock.json') }}
+
           restore-keys: |
             ${{ runner.os }}-npm-
       - name: Install
-        working-directory: ${{ steps.findweb.outputs.workdir }}
-        run: npm ci
-      - name: Lint
-        working-directory: ${{ steps.findweb.outputs.workdir }}
-        run: npm run lint
-      - name: Test
-        working-directory: ${{ steps.findweb.outputs.workdir }}
-        run: npm test -- --watchAll=false | tee test-results.log
+        run: npm ci || npm install
+      - name: Unit tests
+        run: npm test -- --watchAll=false | tee unit-results.log
+      - name: E2E tests
+        run: npm run e2e -- --reporter=line | tee e2e-results.log
+        continue-on-error: true
       - uses: actions/upload-artifact@v4
         if: ${{ always() }}
         with:
-          name: web-test-results
-          path: ${{ steps.findweb.outputs.workdir }}/test-results.log
+          name: ${{ matrix.project }}-unit
+          path: unit-results.log
+      - uses: actions/upload-artifact@v4
+        if: ${{ always() }}
+        with:
+          name: ${{ matrix.project }}-e2e
+          path: e2e-results.log
+

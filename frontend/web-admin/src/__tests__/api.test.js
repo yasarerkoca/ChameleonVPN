@@ -11,7 +11,7 @@ describe('API token refresh', () => {
   });
 
   test('refreshes token on 401 and retries request', async () => {
-    const { default: api, fetchTodo } = await import('../api.js');
+    const { default: api, fetchTodo } = await import('../lib/api');
     const mockApi = new MockAdapter(api);
     const mockBase = new MockAdapter(axios);
 

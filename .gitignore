@@ -152,5 +152,9 @@ chameleon_vpn_client/ios/.symlinks/
 chameleon_vpn_client/ios/Flutter/Flutter.podspec
 
 # Allow Flutter lib directory
+!frontend/web-admin/src/lib/
+!frontend/web-admin/src/lib/api.ts
+!frontend/web-user/src/lib/
+!frontend/web-user/src/lib/api.ts
 !chameleon_vpn_client/lib/
 !chameleon_vpn_client/plugins/flutter_wireguard_plugin/lib/
