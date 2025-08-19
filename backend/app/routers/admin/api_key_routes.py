@@ -5,18 +5,13 @@ import secrets
 from app.models.security.api_key import APIKey
 from app.models.security.api_key_access_log import APIKeyAccessLog
 from app.utils.db.db_utils import get_db
-from app.utils.auth.auth_utils import get_current_user_optional
 from app.models.user import User
+from app.deps import require_role
 
 router = APIRouter(
     prefix="/admin/api-keys",
     tags=["admin-api-keys"]
 )
-
-def admin_required(current_user: User = Depends(get_current_user_optional)):
-    if not current_user or not current_user.is_admin:
-        raise HTTPException(status_code=403, detail="Admin yetkisi gerekli")
-    return current_user
 
 @router.post("/create", summary="Yeni API Key oluştur")
 def create_api_key(
@@ -24,7 +19,7 @@ def create_api_key(
     corporate_group_id: Optional[int] = None,
     description: str = "",
     db: Session = Depends(get_db),
-    _: User = Depends(admin_required)
+    _: User = Depends(require_role("admin"))
 ):
     key = secrets.token_urlsafe(32)
     api_key = APIKey(
@@ -42,7 +37,7 @@ def list_api_keys(
     user_id: Optional[int] = None,
     corporate_group_id: Optional[int] = None,
     db: Session = Depends(get_db),
-    _: User = Depends(admin_required)
+    _: User = Depends(require_role("admin"))
 ):
     query = db.query(APIKey)
     if user_id:
@@ -52,7 +47,7 @@ def list_api_keys(
     return query.order_by(APIKey.created_at.desc()).all()
 
 @router.delete("/{api_key_id}", summary="API Key sil")
-def delete_api_key(api_key_id: int, db: Session = Depends(get_db), _: User = Depends(admin_required)):
+def delete_api_key(api_key_id: int, db: Session = Depends(get_db), _: User = Depends(require_role("admin"))):
     api_key = db.query(APIKey).get(api_key_id)
     if not api_key:
         raise HTTPException(status_code=404, detail="API Key not found")
@@ -61,7 +56,7 @@ def delete_api_key(api_key_id: int, db: Session = Depends(get_db), _: User = Dep
     return {"msg": "API Key silindi."}
 
 @router.post("/deactivate/{api_key_id}", summary="API Key devre dışı bırak")
-def deactivate_api_key(api_key_id: int, db: Session = Depends(get_db), _: User = Depends(admin_required)):
+def deactivate_api_key(api_key_id: int, db: Session = Depends(get_db), _: User = Depends(require_role("admin"))):
     api_key = db.query(APIKey).get(api_key_id)
     if not api_key:
         raise HTTPException(status_code=404, detail="API Key not found")
@@ -70,7 +65,7 @@ def deactivate_api_key(api_key_id: int, db: Session = Depends(get_db), _: User =
     return {"msg": "API Key devre dışı bırakıldı."}
 
 @router.post("/unblock/{api_key_id}", summary="API Key engelini kaldır")
-def unblock_api_key(api_key_id: int, db: Session = Depends(get_db), _: User = Depends(admin_required)):
+def unblock_api_key(api_key_id: int, db: Session = Depends(get_db), _: User = Depends(require_role("admin"))):
     key = db.query(APIKey).get(api_key_id)
     if not key:
         raise HTTPException(status_code=404, detail="API Key not found")
@@ -80,7 +75,7 @@ def unblock_api_key(api_key_id: int, db: Session = Depends(get_db), _: User = De
     return {"msg": "API Key tekrar aktif edildi."}
 
 @router.get("/status/{api_key_id}", summary="API Key durum bilgisi getir")
-def api_key_status(api_key_id: int, db: Session = Depends(get_db), _: User = Depends(admin_required)):
+def api_key_status(api_key_id: int, db: Session = Depends(get_db), _: User = Depends(require_role("admin"))):
     key = db.query(APIKey).get(api_key_id)
     if not key:
         raise HTTPException(status_code=404, detail="API Key not found")
@@ -99,7 +94,7 @@ def api_key_access_logs(
     start_date: Optional[str] = None,
     end_date: Optional[str] = None,
     db: Session = Depends(get_db),
-    _: User = Depends(admin_required)
+    _: User = Depends(require_role("admin"))
 ):
     query = db.query(APIKeyAccessLog)
     if api_key_id:

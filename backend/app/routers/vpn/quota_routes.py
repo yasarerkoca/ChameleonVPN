@@ -7,16 +7,12 @@ from app.utils.auth.auth_utils import get_current_user
 from app.models.user.user import User
 from app.models.security.limit import UserLimit
 from app.schemas.quota.quota_out import UserLimitOut
+from app.deps import require_role
 
 router = APIRouter(
     prefix="/vpn/quota",
     tags=["vpn-quota"]
 )
-
-def admin_required(current_user: User = Depends(get_current_user)):
-    if not getattr(current_user, "is_admin", False) and getattr(current_user, "role", "") != "admin":
-        raise HTTPException(status_code=403, detail="Not enough permissions")
-    return current_user
 
 @router.get("/my", response_model=UserLimitOut, summary="Kendi VPN kotamı getir")
 def my_quota(
@@ -31,6 +27,6 @@ def my_quota(
 @router.get("/all", response_model=List[UserLimitOut], summary="Tüm kullanıcıların VPN kotasını getir (admin)")
 def all_quotas(
     db: Session = Depends(get_db),
-    current_user: User = Depends(admin_required)
+    current_user: User = Depends(require_role("admin"))
 ):
     return db.query(UserLimit).all()

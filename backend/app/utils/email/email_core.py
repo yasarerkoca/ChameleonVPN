@@ -4,6 +4,7 @@ import os
 import aiosmtplib
 from email.message import EmailMessage
 import logging
+from typing import Optional
 
 logger = logging.getLogger(__name__)
 
@@ -15,14 +16,20 @@ SMTP_PASS = os.getenv("SMTP_PASS")
 SMTP_FROM = os.getenv("SMTP_FROM", SMTP_USER)
 
 
-async def send_email_async(to_email: str, subject: str, body: str) -> None:
+async def send_email_async(
+    to_email: str,
+    subject: str,
+    body: str,
+    html_body: Optional[str] = None,
+) -> None:
     """
     Asenkron şekilde SMTP ile e-posta gönderir.
 
     Args:
         to_email (str): Alıcı e-posta adresi
         subject (str): E-posta başlığı
-        body (str): E-posta içeriği
+        body (str): Düz metin e-posta içeriği
+        html_body (Optional[str]): HTML formatında içerik
     """
     if not all([SMTP_HOST, SMTP_USER, SMTP_PASS]):
         logger.error("SMTP yapılandırması eksik. .env dosyasını kontrol edin.")
@@ -33,6 +40,8 @@ async def send_email_async(to_email: str, subject: str, body: str) -> None:
     msg["To"] = to_email
     msg["Subject"] = subject
     msg.set_content(body)
+    if html_body:
+        msg.add_alternative(html_body, subtype="html")
 
     try:
         await aiosmtplib.send(

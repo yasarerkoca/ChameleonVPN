@@ -12,16 +12,12 @@ from app.models.user.user import User
 from app.models.vpn.vpn_server import VPNServer
 from app.models.vpn.vpn_config import VPNConfig
 from app.schemas.vpn.vpn_server import VPNServerOut, VPNServerCreate
+from app.deps import require_role
 
 router = APIRouter(
     prefix="/vpn/server",
     tags=["vpn-server"]
 )
-
-def admin_required(current_user: User = Depends(get_current_user)):
-    if not getattr(current_user, "is_admin", False) and getattr(current_user, "role", "") != "admin":
-        raise HTTPException(status_code=403, detail="Not enough permissions")
-    return current_user
 
 @router.get("/", response_model=List[VPNServerOut], summary="Tüm VPN sunucularını listele (herkes görebilir)")
 def list_servers(db: Session = Depends(get_db)):
@@ -31,7 +27,7 @@ def list_servers(db: Session = Depends(get_db)):
 def create_server(
     server: VPNServerCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(admin_required)
+    current_user: User = Depends(require_role("admin"))
 ):
     new_server = VPNServer(**server.dict())
     db.add(new_server)
@@ -43,7 +39,7 @@ def create_server(
 def delete_server(
     server_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(admin_required)
+    current_user: User = Depends(require_role("admin"))
 ):
     server = db.query(VPNServer).get(server_id)
     if not server:

@@ -10,6 +10,7 @@ from .status_routes import router as status_router
 from .traffic_routes import router as traffic_router
 from .quota_routes import router as quota_router
 from .connection_routes import router as connection_router  # << bu önemli
+from .vpn_peers import router as peer_router
 
 router = APIRouter()
 
@@ -20,4 +21,5 @@ router.include_router(server_router)
 router.include_router(status_router)
 router.include_router(traffic_router)
 router.include_router(quota_router)
-router.include_router(connection_router)  # << burada router eksikti
+router.include_router(connection_router)
+router.include_router(peer_router)

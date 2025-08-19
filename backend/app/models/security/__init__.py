@@ -5,7 +5,6 @@ from .api_key_access_log import APIKeyAccessLog
 from .blocked_ip import BlockedIP
 from .blocked_ip_range import BlockedIPRange
 from .limit import UserLimit
-from .refresh_token_blacklist import RefreshTokenBlacklist
 from .two_factor_tokens import TwoFactorToken
 from .user_blocklist import UserBlocklist
 
@@ -15,7 +14,6 @@ __all__ = [
     "BlockedIP",
     "BlockedIPRange",
     "UserLimit",
-    "RefreshTokenBlacklist",
     "TwoFactorToken",
     "UserBlocklist",
 ]

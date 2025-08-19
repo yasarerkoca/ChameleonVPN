@@ -29,6 +29,12 @@ alembic upgrade head
 alembic revision --autogenerate -m "change"
 alembic downgrade -1
 
+## Veritabanı Seed
+```bash
+python -m app.db.seed
+```
+Bu komut, varsayılan roller ve yönetici hesabını ekler.
+
 ## Test
 pytest -q
 

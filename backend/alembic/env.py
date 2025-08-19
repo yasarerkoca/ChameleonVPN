@@ -52,8 +52,9 @@ def run_migrations_online() -> None:
         poolclass=pool.NullPool,
     )
     with connectable.connect() as connection:
-        # PostgreSQL search_path ayarla (public + diğer şemalar)
-        connection.execute(text("SET search_path TO public, pg_catalog"))
+        # PostgreSQL'e özel search_path ayarı
+        if connection.dialect.name == "postgresql":
+            connection.execute(text("SET search_path TO public, pg_catalog"))
         context.configure(
             connection=connection,
             target_metadata=target_metadata,

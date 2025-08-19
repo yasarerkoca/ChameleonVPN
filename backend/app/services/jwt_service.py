@@ -1,20 +1,16 @@
-# ~/ChameleonVPN/backend/app/services/jwt_service.py
-
-"""Utility functions for creating and verifying JWT tokens.
-
-Centralizes creation and validation of all token types used in the
+"""Centralizes creation and validation of all token types used in the
 application: access, refresh, email verification and password reset.
 
 All expiration times and algorithms are configured via the application
-settings to avoid hard-coded values in the codebase.
-"""
+settings to avoid hard-coded values in the codebase."""
 
 from datetime import datetime, timedelta
 from typing import Optional, Dict
+from fastapi import HTTPException
 from jose import jwt, JWTError
 
 from app.config.base import settings
-
+from . import token_blacklist
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
     """Create a signed access token."""
@@ -39,7 +35,6 @@ def create_refresh_token(data: dict, expires_delta: Optional[timedelta] = None) 
 def create_password_reset_token(
     email: str, expires_delta: Optional[timedelta] = None
 ) -> str:
-
     """Create a password reset token for the given e-mail address."""
     expire = datetime.utcnow() + (
         expires_delta
@@ -56,6 +51,8 @@ def verify_password_reset_token(token: str) -> Optional[str]:
         return payload.get("sub")
     except JWTError:
         return None
+
+
 def create_email_verification_token(
     email: str, expires_delta: Optional[timedelta] = None
 ) -> str:
@@ -83,6 +80,35 @@ def decode_token(token: str) -> Optional[Dict]:
         return jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
     except JWTError:
         return None
+def revoke_refresh_token(token: str) -> None:
+    """Blacklist the provided refresh token using Redis."""
+    payload = decode_token(token)
+    if not payload:
+        return
+    exp = datetime.utcfromtimestamp(payload.get("exp", 0))
+    token_blacklist.add(token, exp)
+
+
+def refresh_tokens(refresh_token: str) -> Dict[str, str]:
+    """Rotate refresh tokens and issue a new token pair.
+
+    Raises ``HTTPException`` if the provided refresh token is invalid or
+    has been revoked."""
+    if token_blacklist.contains(refresh_token):
+        raise HTTPException(status_code=401, detail="Refresh token revoked")
+
+    payload = decode_token(refresh_token)
+    if payload is None:
+        raise HTTPException(status_code=401, detail="Invalid refresh token")
+
+    # Revoke old token and issue new pair
+    revoke_refresh_token(refresh_token)
+
+    data = {"sub": payload.get("sub"), "user_id": payload.get("user_id")}
+    access = create_access_token(data)
+    refresh = create_refresh_token(data)
+    return {"access_token": access, "refresh_token": refresh, "token_type": "bearer"}
+
 # Backwards compatibility alias
 decode_access_token = decode_token
 
@@ -96,5 +122,6 @@ __all__ = [
     "verify_email_verification_token",
     "decode_token",
     "decode_access_token",
+    "refresh_tokens",
+    "revoke_refresh_token",
 ]
-

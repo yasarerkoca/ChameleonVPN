@@ -28,13 +28,16 @@ from .user import (
     UserRelationship,
 )
 
+# RBAC
+from .role import Role
+from .permission import Permission
+
 # 2) SECURITY (User.back_populates: api_keys, two_factor_tokens, limits, vb.)
 from .security import (
     APIKey,
     APIKeyAccessLog,
     BlockedIP,
     BlockedIPRange,
-    RefreshTokenBlacklist,
     TwoFactorToken,
     UserBlocklist,
     UserLimit,
@@ -69,16 +72,6 @@ from .billing import (
     UserSubscriptionHistory,
 )
 
-# 7) LOGS
-from .logs import (
-    SystemAlert,
-    ConsentLog,
-    EmailSmsLog,
-    AdminActivityLog,
-    AnomalyFraudRecord,
-    UserManualAudit,
-)
-
 __all__ = [
     # Base
     "Base",
@@ -97,13 +90,14 @@ __all__ = [
     "UserFlagsSettings",
     "UserProfile",
     "UserRelationship",
+    "Role",
+    "Permission",
 
     # Security
     "APIKey",
     "APIKeyAccessLog",
     "BlockedIP",
     "BlockedIPRange",
-    "RefreshTokenBlacklist",
     "TwoFactorToken",
     "UserBlocklist",
     "UserLimit",
@@ -129,11 +123,4 @@ __all__ = [
     "UserBillingHistory",
     "UserSubscriptionHistory",
 
-    # Logs
-    "SystemAlert",
-    "ConsentLog",
-    "EmailSmsLog",
-    "AdminActivityLog",
-    "AnomalyFraudRecord",
-    "UserManualAudit",
 ]

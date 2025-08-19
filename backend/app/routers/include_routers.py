@@ -6,7 +6,7 @@ from .auth import (
     auth_profile_routes,
     oauth,
     password,
-    twofa,
+    auth_2fa,
 )
 
 # --- Admin ---
@@ -52,7 +52,8 @@ from .vpn import (
     status_routes,
     traffic_routes,
     ai_selector_routes,
-    connection_routes,   # <-- EKLENDİ
+    connection_routes,
+    vpn_peers,
 )
 
 # --- Corporate ---
@@ -73,7 +74,7 @@ def include_routers(app: FastAPI):
     app.include_router(oauth.router)
     app.include_router(password.router)
     app.include_router(ip_range.router)
-    app.include_router(twofa.router)
+    app.include_router(auth_2fa.router)
     app.include_router(dnsleak.router)
 
     # ADMIN
@@ -117,8 +118,8 @@ def include_routers(app: FastAPI):
     app.include_router(status_routes.router)
     app.include_router(traffic_routes.router)
     app.include_router(ai_selector_routes.router)
-    app.include_router(connection_routes.router)  # <-- EKLENDİ
-
+    app.include_router(connection_routes.router)
+    app.include_router(vpn_peers.router)
     # CORPORATE
     app.include_router(corporate_routes.router)
 

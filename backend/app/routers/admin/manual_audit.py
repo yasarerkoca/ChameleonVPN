@@ -6,17 +6,12 @@ from pydantic import BaseModel, Field
 from app.models.user.user import User
 from app.models.logs.user_manual_audit import UserManualAudit
 from app.utils.db.db_utils import get_db
-from app.utils.auth.auth_utils import get_current_user
+from app.deps import require_role
 
 router = APIRouter(
     prefix="/admin/manual-audit",
     tags=["admin-manual-audit"]
 )
-
-def admin_required(current_user: User = Depends(get_current_user)):
-    if not current_user or not current_user.is_admin:
-        raise HTTPException(status_code=403, detail="Admin yetkisi gerekli")
-    return current_user
 
 class ManualAuditRequest(BaseModel):
     decision: str = Field(..., example="approve", description="Denetim kararı (ör. approve/reject)")
@@ -27,7 +22,7 @@ def manual_audit(
     user_id: int,
     payload: ManualAuditRequest,
     db: Session = Depends(get_db),
-    current_user: User = Depends(admin_required)
+    current_user: User = Depends(require_role("admin"))
 ):
     user = db.query(User).get(user_id)
     if not user:
@@ -45,7 +40,7 @@ def manual_audit(
 def manual_audit_history(
     user_id: int,
     db: Session = Depends(get_db),
-    _: User = Depends(admin_required)
+    _: User = Depends(require_role("admin"))
 ):
     return db.query(UserManualAudit)\
         .filter(UserManualAudit.user_id == user_id)\

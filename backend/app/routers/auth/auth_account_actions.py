@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
+import asyncio
 from sqlalchemy.orm import Session
 from fastapi_limiter.depends import RateLimiter
 import os
@@ -59,8 +60,9 @@ def register(
         "EMAIL_VERIFY_URL", "http://localhost:8000/auth/verify-email"
     ) + f"?token={verification_token}"
     if background_tasks:
-        background_tasks.add_task(send_verification_email, new_user.email, verify_url)
-
+        background_tasks.add_task(
+            asyncio.create_task, send_verification_email(new_user.email, verify_url)
+        )
     return new_user
 
 @router.post("/login", summary="Kullanıcı girişi (JWT ile)")

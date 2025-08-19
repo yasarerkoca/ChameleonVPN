@@ -27,7 +27,20 @@ jobs:
       - name: Test
         run: pytest --cov --junitxml=test-results.xml
       - name: Security audit
-        run: pip-audit
+        run: pip-audit -r requirements.txt
+      - name: Export OpenAPI schema
+        run: |
+          sudo sh -c 'echo "127.0.0.1 backend" >> /etc/hosts'
+          uvicorn app.main:app --host backend --port 8000 &
+          pid=$!
+          sleep 3
+          curl http://backend:8000/openapi.json -o openapi.json
+          kill $pid
+      - uses: actions/upload-artifact@v4
+        if: ${{ always() }}
+        with:
+          name: backend-openapi
+          path: openapi.json
       - uses: actions/upload-artifact@v4
         if: ${{ always() }}
         with:

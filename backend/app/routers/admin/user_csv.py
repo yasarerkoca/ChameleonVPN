@@ -6,20 +6,15 @@ from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from app.models.user.user import User
 from app.utils.db.db_utils import get_db
-from app.utils.auth.auth_utils import get_current_user_optional
+from app.deps import require_role
 
 router = APIRouter(
     prefix="/admin/user-csv",
     tags=["admin-user-csv"]
 )
 
-def admin_required(current_user=Depends(get_current_user_optional)):
-    if not current_user or not current_user.is_admin:
-        raise HTTPException(status_code=403, detail="Admin yetkisi gerekli")
-    return current_user
-
 @router.get("/export", summary="Tüm kullanıcıları CSV olarak indir")
-def export_users_csv(db: Session = Depends(get_db), _: str = Depends(admin_required)):
+def export_users_csv(db: Session = Depends(get_db), _: str = Depends(require_role("admin"))):
     users = db.query(User).all()
     output = io.StringIO()
     writer = csv.writer(output)
@@ -53,7 +48,7 @@ def export_users_csv(db: Session = Depends(get_db), _: str = Depends(admin_requi
 def import_users_csv(
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
-    _: str = Depends(admin_required)
+    _: str = Depends(require_role("admin"))
 ):
     try:
         content = file.file.read().decode("utf-8").splitlines()

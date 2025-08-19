@@ -8,24 +8,18 @@ from app.models.security.limit import UserLimit
 from app.models.corporate.corporate_user_group import CorporateUserGroup
 from app.models.corporate.corporate_user_rights_history import CorporateUserRightsHistory
 from app.utils.db.db_utils import get_db
-from app.utils.auth.auth_utils import get_current_user_optional
+from app.deps import require_role
 
 router = APIRouter(
     prefix="/admin/quota",
     tags=["admin-quota"]
 )
 
-def admin_required(current_user: User = Depends(get_current_user_optional)) -> int:
-    """Ensure the requester is admin and return their ID."""
-    if not current_user or not current_user.is_admin:
-        raise HTTPException(status_code=403, detail="Admin yetkisi gerekli")
-    return current_user.id
-
 class QuotaRequest(BaseModel):
     quota_gb: int = Field(..., example=50, description="Kullanıcıya atanacak kota (GB)")
 
 @router.get("/user-quotas", summary="Tüm kullanıcıların kota kayıtlarını getir")
-def list_quotas(db: Session = Depends(get_db), _: int = Depends(admin_required)):
+def list_quotas(db: Session = Depends(get_db), _: User = Depends(require_role("admin"))):
     return db.query(UserLimit).all()
 
 @router.post("/user/{user_id}", summary="Bireysel kullanıcıya kota GB ata")
@@ -33,7 +27,7 @@ def set_user_quota(
     user_id: int,
     payload: QuotaRequest,
     db: Session = Depends(get_db),
-    admin_id: int = Depends(admin_required)
+    admin: User = Depends(require_role("admin"))
 ):
     user = db.query(User).get(user_id)
     if not user:
@@ -44,7 +38,7 @@ def set_user_quota(
     db.add(
         CorporateUserRightsHistory(
             user_id=user.id,
-            changed_by_admin_id=admin_id,
+            changed_by_admin_id=admin.id,
             field_changed="proxy_quota_gb",
             old_value=str(old_quota),
             new_value=str(payload.quota_gb),
@@ -59,7 +53,7 @@ def set_group_quota(
     group_id: int,
     payload: QuotaRequest,
     db: Session = Depends(get_db),
-    admin_id: int = Depends(admin_required)
+    admin: User = Depends(require_role("admin"))
 ):
     group = db.query(CorporateUserGroup).get(group_id)
     if not group or not group.users:
@@ -70,7 +64,7 @@ def set_group_quota(
         db.add(
             CorporateUserRightsHistory(
                 user_id=user.id,
-                changed_by_admin_id=admin_id,
+                changed_by_admin_id=admin.id,
                 field_changed="proxy_quota_gb",
                 old_value=str(old_quota),
                 new_value=str(payload.quota_gb),

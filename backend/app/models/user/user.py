@@ -6,6 +6,8 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
 
 from app.config.database import Base
+from app.models.role import Role, user_roles
+from app.models.permission import Permission, user_permissions
 
 class User(Base):
     __tablename__ = "users"
@@ -126,6 +128,12 @@ class User(Base):
         back_populates="changed_by_admin",
         cascade="all, delete-orphan",
         foreign_keys="CorporateUserRightsHistory.changed_by_admin_id",
+    )
+
+    # RBAC relationships
+    roles = relationship("Role", secondary=user_roles, back_populates="users")
+    permissions = relationship(
+        "Permission", secondary=user_permissions, back_populates="users"
     )
 
     def __repr__(self):

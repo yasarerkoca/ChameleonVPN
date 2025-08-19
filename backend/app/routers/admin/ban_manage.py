@@ -3,20 +3,15 @@ from sqlalchemy.orm import Session
 from app.models.user import User
 from app.models.corporate.corporate_user_rights_history import CorporateUserRightsHistory
 from app.utils.db.db_utils import get_db
-from app.utils.auth.auth_utils import get_current_user
+from app.deps import require_role
 
 router = APIRouter(
     prefix="/admin/user-control",
     tags=["admin-user-control"]
 )
 
-def admin_required(current_user: User = Depends(get_current_user)):
-    if not current_user or not current_user.is_admin:
-        raise HTTPException(status_code=403, detail="Admin yetkisi gerekli")
-    return current_user
-
 @router.post("/ban/{user_id}", summary="Kullanıcıyı banla")
-def ban_user(user_id: int, db: Session = Depends(get_db), current_user: User = Depends(admin_required)):
+def ban_user(user_id: int, db: Session = Depends(get_db), current_user: User = Depends(require_role("admin"))):
     user = db.query(User).get(user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -37,7 +32,7 @@ def ban_user(user_id: int, db: Session = Depends(get_db), current_user: User = D
     return {"msg": f"{user.email} kullanıcısı banlandı."}
 
 @router.post("/unban/{user_id}", summary="Kullanıcının banını kaldır")
-def unban_user(user_id: int, db: Session = Depends(get_db), current_user: User = Depends(admin_required)):
+def unban_user(user_id: int, db: Session = Depends(get_db), current_user: User = Depends(require_role("admin"))):
     user = db.query(User).get(user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -58,7 +53,7 @@ def unban_user(user_id: int, db: Session = Depends(get_db), current_user: User =
     return {"msg": f"{user.email} kullanıcısının banı kaldırıldı."}
 
 @router.post("/quarantine/{user_id}", summary="Kullanıcıyı karantinaya al")
-def quarantine_user(user_id: int, db: Session = Depends(get_db), _: User = Depends(admin_required)):
+def quarantine_user(user_id: int, db: Session = Depends(get_db), _: User = Depends(require_role("admin"))):
     user = db.query(User).get(user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -68,11 +63,11 @@ def quarantine_user(user_id: int, db: Session = Depends(get_db), _: User = Depen
     return {"msg": f"{user.email} karantinaya alındı."}
 
 @router.get("/quarantined", summary="Karantinaya alınmış kullanıcıları listele")
-def list_quarantined_users(db: Session = Depends(get_db), _: User = Depends(admin_required)):
+def list_quarantined_users(db: Session = Depends(get_db), _: User = Depends(require_role("admin"))):
     return db.query(User).filter(User.status == "quarantined").all()
 
 @router.post("/rehabilitate/{user_id}", summary="Karantinadaki kullanıcıyı aktifleştir")
-def rehabilitate_user(user_id: int, db: Session = Depends(get_db), _: User = Depends(admin_required)):
+def rehabilitate_user(user_id: int, db: Session = Depends(get_db), _: User = Depends(require_role("admin"))):
     user = db.query(User).get(user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")

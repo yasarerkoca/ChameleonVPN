@@ -4,40 +4,33 @@ from datetime import datetime, timedelta
 from typing import Optional, List
 
 from app.utils.db.db_utils import get_db
-from app.utils.auth.auth_utils import get_current_user_optional
 from app.models.user import User
 from app.models.logs.anomaly_fraud_record import AnomalyFraudRecord
 from app.models.user.user_activity_log import UserActivityLog
 from app.models.proxy.proxy_usage_log import ProxyUsageLog
 from app.services.anomaly_detector import detect_anomalies
 from app.crud.logs import log_crud
+from app.deps import require_role
 
 router = APIRouter(
     prefix="/admin/ai-logs",
     tags=["admin-ai-logs"]
 )
 
-
-def admin_required(current_user: User = Depends(get_current_user_optional)):
-    if not current_user or not current_user.is_admin:
-        raise HTTPException(status_code=403, detail="Admin yetkisi gerekli")
-    return current_user
-
 @router.get("/detect", summary="AI ile anomali tespiti")
-def ai_log_analysis(db: Session = Depends(get_db), _: User = Depends(admin_required)):
+def ai_log_analysis(db: Session = Depends(get_db), _: User = Depends(require_role("admin"))):
     logs = log_crud.get_user_log_stats(db)
     anomalies = detect_anomalies(logs)
     return {"anomalies": anomalies}
 
 @router.get("/recent", summary="Son 24 saatlik anomaly kayıtları")
-def recent_anomalies(db: Session = Depends(get_db), _: User = Depends(admin_required)):
+def recent_anomalies(db: Session = Depends(get_db), _: User = Depends(require_role("admin"))):
     since = datetime.utcnow() - timedelta(hours=24)
     results = db.query(AnomalyFraudRecord)\
         .filter(AnomalyFraudRecord.created_at >= since)\
         .order_by(AnomalyFraudRecord.created_at.desc())\
         .all()
     return results
-
 
 @router.get("/activity/search", summary="Kullanıcı aktivitelerini filtrele")
 def search_logs(
@@ -47,7 +40,7 @@ def search_logs(
     start_date: Optional[str] = Query(None, example="2024-01-01T00:00:00"),
     end_date: Optional[str] = Query(None, example="2024-01-02T00:00:00"),
     db: Session = Depends(get_db),
-    _: User = Depends(admin_required)
+    _: User = Depends(require_role("admin"))
 ):
     query = db.query(UserActivityLog)
     if user_id:
@@ -70,7 +63,7 @@ def search_proxy_usage(
     start_date: Optional[str] = Query(None, example="2024-01-01T00:00:00"),
     end_date: Optional[str] = Query(None, example="2024-01-02T00:00:00"),
     db: Session = Depends(get_db),
-    _: User = Depends(admin_required)
+    _: User = Depends(require_role("admin"))
 ):
     query = db.query(ProxyUsageLog)
     if user_id:
@@ -92,7 +85,7 @@ def search_anomaly_logs(
     start_date: Optional[str] = Query(None, example="2024-01-01T00:00:00"),
     end_date: Optional[str] = Query(None, example="2024-01-02T00:00:00"),
     db: Session = Depends(get_db),
-    _: User = Depends(admin_required)
+    _: User = Depends(require_role("admin"))
 ):
     query = db.query(AnomalyFraudRecord)
     if user_id:

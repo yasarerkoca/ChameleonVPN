@@ -7,17 +7,12 @@ from app.models.user.user import User
 from app.models.user.user_notification import UserNotification
 from app.models.corporate.corporate_user_rights_history import CorporateUserRightsHistory
 from app.utils.db.db_utils import get_db
-from app.utils.auth.auth_utils import get_current_user
+from app.deps import require_role
 
 router = APIRouter(
     prefix="/admin/user-management",
     tags=["admin-user-management"]
 )
-
-def admin_required(current_user: User = Depends(get_current_user)):
-    if not current_user or not current_user.is_admin:
-        raise HTTPException(status_code=403, detail="Admin yetkisi gerekli")
-    return current_user
 
 # --- Pydantic modelleri ---
 class UserIdsRequest(BaseModel):
@@ -29,12 +24,12 @@ class AnnouncementRequest(BaseModel):
 
 # --- Kullanıcı Listele / Oluştur (opsiyonel) ---
 @router.get("/users", summary="Tüm kullanıcıları listele")
-def list_users(db: Session = Depends(get_db), _: User = Depends(admin_required)):
+def list_users(db: Session = Depends(get_db), _: User = Depends(require_role("admin"))):
     return db.query(User).all()
 
 # --- Kullanıcı Silme ---
 @router.delete("/users/{user_id}", summary="Kullanıcıyı sil")
-def delete_user(user_id: int, db: Session = Depends(get_db), current_user: User = Depends(admin_required)):
+def delete_user(user_id: int, db: Session = Depends(get_db), current_user: User = Depends(require_role("admin"))):
     user = db.query(User).get(user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -55,7 +50,7 @@ def delete_user(user_id: int, db: Session = Depends(get_db), current_user: User 
 def enforce_mfa(
     payload: UserIdsRequest,
     db: Session = Depends(get_db),
-    _: User = Depends(admin_required)
+    _: User = Depends(require_role("admin"))
 ):
     enforced = []
     for user_id in payload.user_ids:
@@ -72,7 +67,7 @@ def enforce_mfa(
 def force_password_reset(
     payload: UserIdsRequest,
     db: Session = Depends(get_db),
-    _: User = Depends(admin_required)
+    _: User = Depends(require_role("admin"))
 ):
     reset_required = []
     for user_id in payload.user_ids:
@@ -89,7 +84,7 @@ def force_password_reset(
 def send_global_announcement(
     payload: AnnouncementRequest,
     db: Session = Depends(get_db),
-    _: User = Depends(admin_required)
+    _: User = Depends(require_role("admin"))
 ):
     notified = []
     users = db.query(User).all() if not payload.target_user_ids else db.query(User).filter(User.id.in_(payload.target_user_ids)).all()

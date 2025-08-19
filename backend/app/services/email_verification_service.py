@@ -2,9 +2,16 @@
 
 from app.utils.email.email_core import send_email_async
 import logging
+import os
+from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 logger = logging.getLogger(__name__)
 
+templates_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "templates")
+env = Environment(
+    loader=FileSystemLoader(templates_dir),
+    autoescape=select_autoescape(["html", "xml"]),
+)
 
 async def send_verification_email(to_email: str, verify_url: str) -> None:
     """
@@ -15,6 +22,8 @@ async def send_verification_email(to_email: str, verify_url: str) -> None:
         verify_url (str): Doğrulama linki
     """
     subject = "ChameleonVPN - Hesabınızı Doğrulayın"
+    template = env.get_template("email/verify.html")
+    html_body = template.render(verify_url=verify_url)
     body = (
         f"Merhaba,\n\n"
         f"Hesabınızı doğrulamak için aşağıdaki bağlantıya tıklayın:\n{verify_url}\n\n"
@@ -22,7 +31,7 @@ async def send_verification_email(to_email: str, verify_url: str) -> None:
     )
 
     try:
-        await send_email_async(to_email, subject, body)
+        await send_email_async(to_email, subject, body, html_body)
         logger.info(f"Doğrulama e-postası gönderildi: {to_email}")
     except Exception as e:
         logger.error(f"Doğrulama e-postası gönderimi başarısız: {to_email} - {str(e)}")
