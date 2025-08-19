@@ -2,6 +2,9 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from fastapi.responses import PlainTextResponse
 from typing import Dict, List
+import subprocess
+import tempfile
+import os
 
 from app.utils.db.db_utils import get_db
 from app.utils.auth.auth_utils import get_current_user
@@ -79,14 +82,74 @@ def get_my_vpn_config(
     if existing:
         return existing.config.strip()
 
-    # Kullanıcı anahtarlarını veritabanından veya dış servisten getir
+    # Kullanıcı anahtarlarını oluştur veya getir
     def _fetch_user_keys(user: User, protocol: str) -> Dict[str, str]:
-        """Kullanıcıya ait VPN anahtarlarını getir (örnek/stub)."""
+        """Kullanıcıya ait VPN anahtarlarını getir."""
         if protocol.lower() == "wireguard":
-            # Gerçek senaryoda bu bilgiler güvenli bir şekilde saklanıp alınmalı
-            return {"private_key": "USER_PRIVATE_KEY", "public_key": "USER_PUBLIC_KEY"}
-        elif protocol.lower() == "openvpn":
-            return {"cert": "USER_CERT", "key": "USER_KEY"}
+            try:
+                private_key = subprocess.run(
+                    ["wg", "genkey"], check=True, capture_output=True, text=True
+                ).stdout.strip()
+                public_key = subprocess.run(
+                    ["wg", "pubkey"],
+                    input=private_key,
+                    check=True,
+                    capture_output=True,
+                    text=True,
+                ).stdout.strip()
+            except FileNotFoundError as exc:  # wg not installed
+                raise HTTPException(
+                    status_code=500,
+                    detail="WireGuard key generation tool not found",
+                ) from exc
+            except subprocess.CalledProcessError as exc:
+                raise HTTPException(
+                    status_code=500,
+                    detail="WireGuard key generation failed",
+                ) from exc
+            return {"private_key": private_key, "public_key": public_key}
+
+        if protocol.lower() == "openvpn":
+            try:
+                with tempfile.TemporaryDirectory() as tmpdir:
+                    key_path = os.path.join(tmpdir, "client.key")
+                    cert_path = os.path.join(tmpdir, "client.crt")
+                    subprocess.run(
+                        [
+                            "openssl",
+                            "req",
+                            "-x509",
+                            "-nodes",
+                            "-newkey",
+                            "rsa:2048",
+                            "-keyout",
+                            key_path,
+                            "-out",
+                            cert_path,
+                            "-days",
+                            "365",
+                            "-subj",
+                            "/CN=ChameleonVPN",
+                        ],
+                        check=True,
+                        capture_output=True,
+                    )
+                    with open(key_path, "r", encoding="utf-8") as f:
+                        key = f.read().strip()
+                    with open(cert_path, "r", encoding="utf-8") as f:
+                        cert = f.read().strip()
+            except FileNotFoundError as exc:  # openssl not installed
+                raise HTTPException(
+                    status_code=500,
+                    detail="OpenSSL not found for certificate generation",
+                ) from exc
+            except subprocess.CalledProcessError as exc:
+                raise HTTPException(
+                    status_code=500,
+                    detail="OpenVPN certificate generation failed",
+                ) from exc
+            return {"cert": cert, "key": key}
+
         raise HTTPException(status_code=400, detail="Unsupported VPN protocol")
 
     keys = _fetch_user_keys(current_user, server.type)

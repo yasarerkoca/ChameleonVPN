@@ -150,3 +150,6 @@ chameleon_vpn_client/android/local.properties
 chameleon_vpn_client/ios/Pods/
 chameleon_vpn_client/ios/.symlinks/
 chameleon_vpn_client/ios/Flutter/Flutter.podspec
+
+# Allow Flutter lib directory
+!chameleon_vpn_client/lib/

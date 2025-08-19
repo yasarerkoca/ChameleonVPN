@@ -10,6 +10,7 @@ from app.models.logs.anomaly_fraud_record import AnomalyFraudRecord
 from app.models.user.user_activity_log import UserActivityLog
 from app.models.proxy.proxy_usage_log import ProxyUsageLog
 from app.services.anomaly_detector import detect_anomalies
+from app.crud.logs import log_crud
 
 router = APIRouter(
     prefix="/admin/ai-logs",
@@ -22,14 +23,11 @@ def admin_required(current_user: User = Depends(get_current_user_optional)):
         raise HTTPException(status_code=403, detail="Admin yetkisi gerekli")
     return current_user
 
-
-@router.get("/detect", summary="AI ile anomali tespiti (dummy log verisiyle)")
+@router.get("/detect", summary="AI ile anomali tespiti")
 def ai_log_analysis(db: Session = Depends(get_db), _: User = Depends(admin_required)):
-    # TODO: log_crud.get_user_log_stats() entegrasyonu yapılabilir
-    dummy_logs = []  
-    anomalies = detect_anomalies(dummy_logs)
+    logs = log_crud.get_user_log_stats(db)
+    anomalies = detect_anomalies(logs)
     return {"anomalies": anomalies}
-
 
 @router.get("/recent", summary="Son 24 saatlik anomaly kayıtları")
 def recent_anomalies(db: Session = Depends(get_db), _: User = Depends(admin_required)):

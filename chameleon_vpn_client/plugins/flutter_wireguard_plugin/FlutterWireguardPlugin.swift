@@ -4,6 +4,7 @@ import NetworkExtension
 
 public class FlutterWireguardPlugin: NSObject, FlutterPlugin {
   private var manager: NETunnelProviderManager?
+  private var isConnected = false
 
   public static func register(with registrar: FlutterPluginRegistrar) {
     let channel = FlutterMethodChannel(name: "flutter_wireguard_plugin", binaryMessenger: registrar.messenger())
@@ -14,10 +15,8 @@ public class FlutterWireguardPlugin: NSObject, FlutterPlugin {
   public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
     switch call.method {
     case "connect":
-
       guard let args = call.arguments as? [String: Any],
             let config = args["config"] as? String else {
-
         result(FlutterError(code: "INVALID_ARGUMENT", message: "Config parametresi eksik", details: nil))
         return
       }
@@ -32,6 +31,7 @@ public class FlutterWireguardPlugin: NSObject, FlutterPlugin {
     }
   }
   private func connectWireGuard(config: String) -> Bool {
+    if isConnected { return true }
     var success = false
     let semaphore = DispatchSemaphore(value: 0)
     let mgr = NETunnelProviderManager()
@@ -70,11 +70,10 @@ public class FlutterWireguardPlugin: NSObject, FlutterPlugin {
   }
 
   private func disconnectWireGuard() -> Bool {
-    if let mgr = manager {
-      mgr.connection.stopVPNTunnel()
-      manager = nil
-      return true
-    }
-    return false
+    guard let mgr = manager, isConnected else { return false }
+    mgr.connection.stopVPNTunnel()
+    manager = nil
+    isConnected = false
+    return true
   }
 }

@@ -13,6 +13,7 @@ class FlutterWireguardPlugin: FlutterPlugin, MethodCallHandler {
   private lateinit var channel : MethodChannel
   private lateinit var context: Context
   private var lastConfigFile: File? = null
+  private var isConnected = false
 
   override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
     context = flutterPluginBinding.applicationContext
@@ -45,6 +46,7 @@ class FlutterWireguardPlugin: FlutterPlugin, MethodCallHandler {
     channel.setMethodCallHandler(null)
   }
   private fun connectWireGuard(config: String): Boolean {
+    if (isConnected) return true
     return try {
       val file = File.createTempFile("wg", ".conf", context.cacheDir)
       file.writeText(config)
@@ -52,6 +54,7 @@ class FlutterWireguardPlugin: FlutterPlugin, MethodCallHandler {
       val exit = process.waitFor()
       if (exit == 0) {
         lastConfigFile = file
+        isConnected = true
         true
       } else {
         file.delete()
@@ -70,7 +73,12 @@ class FlutterWireguardPlugin: FlutterPlugin, MethodCallHandler {
       val exit = process.waitFor()
       file.delete()
       lastConfigFile = null
-      exit == 0
+      if (exit == 0) {
+        isConnected = false
+        true
+      } else {
+        false
+      }
     } catch (e: Exception) {
       e.printStackTrace()
       false

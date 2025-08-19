@@ -2,6 +2,7 @@
 from fastapi import HTTPException
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
+from fastapi import HTTPException
 from .common import should_bypass
 
 # Opsiyonel DB erişimi (varsa) – yoksa no-op
@@ -38,14 +39,13 @@ class IPBlockMiddleware(BaseHTTPMiddleware):
                     request.client.host if request.client else "0.0.0.0"
                 )
 
-                try:
-                    # IP veritabanında engelliyse 403 döndür
-                    if is_ip_blocked(db, client_ip):
-                        raise HTTPException(status_code=403, detail="IP bloklandı")
-                finally:
-                    db.close()
-
+                if is_ip_blocked(db, client_ip):
+                    raise HTTPException(status_code=403, detail="IP blocked")
             except HTTPException:
+                raise
+            except HTTPException:
+                pass
+            finally:
                 if db:
                     try:
                         db.close()

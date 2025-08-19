@@ -50,7 +50,6 @@ def verify_email_verification_token(token: str) -> Optional[str]:
     except JWTError:
         return None
 
-def decode_access_token(token: str) -> Dict:
 def decode_token(token: str) -> Optional[Dict]:
     """Decode a JWT and return its payload or ``None`` if invalid."""
     try:

@@ -3,11 +3,52 @@ from typing import Optional
 import os
 import uuid
 import json
+import logging
+
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(
     prefix="/payment/provider",
     tags=["payment-provider"]
 )
+
+def _get_stripe_client():
+    """Configure and return the Stripe SDK instance."""
+    try:
+        import stripe
+    except ImportError as exc:
+        logger.exception("Stripe SDK not installed")
+        raise HTTPException(status_code=500, detail="Stripe SDK not installed") from exc
+
+    api_key = os.getenv("STRIPE_API_KEY")
+    if not api_key:
+        logger.error("STRIPE_API_KEY is not configured")
+        raise HTTPException(status_code=500, detail="Stripe API key not configured")
+
+    stripe.api_key = api_key
+    return stripe
+
+
+def _get_iyzico_client():
+    """Configure and return the iyzico SDK options."""
+    try:
+        import iyzipay
+    except ImportError as exc:
+        logger.exception("iyzipay SDK not installed")
+        raise HTTPException(status_code=500, detail="iyzipay SDK not installed") from exc
+
+    options = iyzipay.Options()
+    options.api_key = os.getenv("IYZICO_API_KEY", "")
+    options.secret_key = os.getenv("IYZICO_SECRET_KEY", "")
+    options.base_url = os.getenv(
+        "IYZICO_BASE_URL", "https://sandbox-api.iyzipay.com"
+    )
+    if not options.api_key or not options.secret_key:
+        logger.error("IYZICO API keys are not configured")
+        raise HTTPException(status_code=500, detail="IYZICO API keys not configured")
+
+    return iyzipay, options
 
 # Örnek: Stripe ödeme başlatma endpoint'i
 @router.post("/stripe/create-session", summary="Stripe ödeme oturumu başlat")
@@ -20,9 +61,7 @@ def create_stripe_session(
     Stripe ile yeni bir ödeme oturumu başlatır.
     """
     try:
-        import stripe
-
-        stripe.api_key = os.getenv("STRIPE_API_KEY", "")
+        stripe = _get_stripe_client()
         session = stripe.checkout.Session.create(
             payment_method_types=["card"],
             line_items=[
@@ -55,14 +94,7 @@ def initialize_iyzico_payment(
     iyzico ile yeni bir ödeme başlatır.
     """
     try:
-        import iyzipay
-
-        options = iyzipay.Options()
-        options.api_key = os.getenv("IYZICO_API_KEY", "")
-        options.secret_key = os.getenv("IYZICO_SECRET_KEY", "")
-        options.base_url = os.getenv(
-            "IYZICO_BASE_URL", "https://sandbox-api.iyzipay.com"
-        )
+        iyzipay, options = _get_iyzico_client()
 
         request_payload = {
             "locale": "tr",
