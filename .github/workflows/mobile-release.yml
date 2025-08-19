@@ -1,0 +1,108 @@
+name: Mobile Release
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  android:
+    name: Android Signed Build
+    runs-on: ubuntu-latest
+    outputs:
+      aab-artifact: ${{ steps.upload_aab.outputs.artifact-id }}
+      apk-artifact: ${{ steps.upload_apk.outputs.artifact-id }}
+    env:
+      FLUTTER_VERSION: '3.22.2'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Prepare keystore
+        working-directory: chameleon_vpn_client/android
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > release.keystore
+          cat <<'EOKEY' > key.properties
+          storePassword=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          keyPassword=${{ secrets.ANDROID_KEY_PASSWORD }}
+          keyAlias=${{ secrets.ANDROID_KEY_ALIAS }}
+          storeFile=release.keystore
+          EOKEY
+
+      - name: Pub get
+        working-directory: chameleon_vpn_client
+        run: flutter pub get
+
+      - name: Build AAB
+        working-directory: chameleon_vpn_client
+        run: flutter build appbundle --release -v
+
+      - name: Build APK
+        working-directory: chameleon_vpn_client
+        run: flutter build apk --release -v
+
+      - name: Upload AAB
+        id: upload_aab
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-aab
+          path: chameleon_vpn_client/build/app/outputs/bundle/release/*.aab
+
+      - name: Upload APK
+        id: upload_apk
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-apk
+          path: chameleon_vpn_client/build/app/outputs/flutter-apk/app-release.apk
+
+  ios:
+    name: iOS Signed Build
+    runs-on: macos-latest
+    outputs:
+      ipa-artifact: ${{ steps.upload_ipa.outputs.artifact-id }}
+    env:
+      FLUTTER_VERSION: '3.22.2'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Set up signing
+        run: |
+          echo "${{ secrets.IOS_CERT_BASE64 }}" | base64 --decode > ios_dist.p12
+          echo "${{ secrets.IOS_PROVISION_PROFILE_BASE64 }}" | base64 --decode > profile.mobileprovision
+          security create-keychain -p "" build.keychain
+          security import ios_dist.p12 -k ~/Library/Keychains/build.keychain -P "${{ secrets.IOS_CERT_PASSWORD }}" -T /usr/bin/codesign
+          security list-keychain -d user -s build.keychain
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          mv profile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/
+
+      - name: Pub get
+        working-directory: chameleon_vpn_client
+        run: flutter pub get
+
+      - name: Build IPA
+        working-directory: chameleon_vpn_client
+        run: flutter build ipa --release -v
+
+      - name: Upload IPA
+        id: upload_ipa
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-ipa
+          path: chameleon_vpn_client/build/ios/ipa/*.ipa
+

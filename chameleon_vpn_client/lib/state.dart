@@ -76,6 +76,9 @@ class AppNotifier extends StateNotifier<AppState> {
   void addLog(String log) {
     state = state.copyWith(logs: [...state.logs, log]);
   }
+  void setLogs(List<String> logs) {
+    state = state.copyWith(logs: logs);
+  }
 }
 
 final appProvider = StateNotifierProvider<AppNotifier, AppState>((ref) => AppNotifier());

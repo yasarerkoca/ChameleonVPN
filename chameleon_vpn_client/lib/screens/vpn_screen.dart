@@ -8,9 +8,8 @@ import 'package:flutter/services.dart' show rootBundle;
 
 /// Simple VPN connection screen using the openvpn_flutter plugin.
 class VpnScreen extends StatefulWidget {
-  const VpnScreen({super.key, required this.token, required this.api});
+  const VpnScreen({super.key, required this.api});
 
-  final String token;
   final ApiService api;
 
   @override
@@ -46,7 +45,7 @@ class _VpnScreenState extends State<VpnScreen> {
   Future<void> _connect() async {
     setState(() => _connecting = true);
     final config = await rootBundle.loadString('assets/vpn_config.ovpn');
-    await widget.api.startVpnSession(widget.token);
+    await widget.api.startVpnSession();
     if (_useWireGuard) {
       await FlutterWireguardPlugin.connect(config);
     } else {

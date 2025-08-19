@@ -4,9 +4,7 @@ import 'vpn_screen.dart';
 
 /// Displays the subscription info and allows starting the VPN.
 class SubscriptionScreen extends StatefulWidget {
-  const SubscriptionScreen({super.key, required this.token, required this.api});
-
-  final String token;
+  const SubscriptionScreen({super.key, required this.api});
   final ApiService api;
 
   @override
@@ -23,7 +21,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
   }
 
   Future<void> _load() async {
-    final sub = await widget.api.fetchSubscription(widget.token);
+    final sub = await widget.api.fetchSubscription();
     if (mounted) {
       setState(() => _subscription = sub);
     }
@@ -32,7 +30,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
   void _startVpn() {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => VpnScreen(token: widget.token, api: widget.api),
+        builder: (_) => VpnScreen(api: widget.api),
       ),
     );
   }
@@ -58,4 +56,3 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
       ),
     );
   }
-}

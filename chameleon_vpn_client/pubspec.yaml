@@ -15,6 +15,8 @@ dependencies:
   flutter_wireguard_plugin:
     path: ./plugins/flutter_wireguard_plugin
   flutter_riverpod: ^2.5.1
+  flutter_secure_storage:
+  shared_preferences: ^2.2.2
 
 dev_dependencies:
   flutter_test:

@@ -13,17 +13,20 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final ApiService api = ApiService(baseUrl: 'https://example.com/api');
+  late final ApiService api = ApiService(
+    baseUrl: 'https://example.com/api',
+    auth: AuthService(baseUrl: 'https://example.com/api'),
+  );
   String? _error;
 
   Future<void> _login() async {
-    final token =
+    final success =
         await api.login(_emailController.text, _passwordController.text);
     if (!mounted) return;
-    if (token != null) {
+    if (success) {
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
-          builder: (_) => SubscriptionScreen(token: token, api: api),
+          builder: (_) => SubscriptionScreen(api: api),
         ),
       );
     } else {
