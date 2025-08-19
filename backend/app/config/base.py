@@ -27,6 +27,8 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"           # .env: JWT_ALGO ile override edilir
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
+    PASSWORD_RESET_TOKEN_EXPIRE_MINUTES: int = 60
+    EMAIL_VERIFICATION_TOKEN_EXPIRE_MINUTES: int = 60 * 24
 
     # --- Session ---
     SESSION_SECRET_KEY: str            # ZORUNLU (>=16)

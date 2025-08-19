@@ -1,15 +1,21 @@
 import Cocoa
 import FlutterMacOS
 
-public class FlutterWireguardPlugin: NSObject, FlutterPlugin {
+public class FlutterWireguardPlugin: NSObject, FlutterPlugin, FlutterStreamHandler {
   private var channel: FlutterMethodChannel?
+  private var eventChannel: FlutterEventChannel?
+  private var statusSink: FlutterEventSink?
   private var configPath: String?
+  private var isConnected = false
 
   public static func register(with registrar: FlutterPluginRegistrar) {
     let channel = FlutterMethodChannel(name: "flutter_wireguard_plugin", binaryMessenger: registrar.messenger)
+    let eventChannel = FlutterEventChannel(name: "flutter_wireguard_plugin/status", binaryMessenger: registrar.messenger)
     let instance = FlutterWireguardPlugin()
     instance.channel = channel
+    instance.eventChannel = eventChannel
     registrar.addMethodCallDelegate(instance, channel: channel)
+    eventChannel.setStreamHandler(instance)
   }
 
   public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
@@ -20,13 +26,17 @@ public class FlutterWireguardPlugin: NSObject, FlutterPlugin {
     case "connect":
       if let args = call.arguments as? [String: Any],
          let config = args["config"] as? String {
-        result(connectWireGuard(config: config))
+        let success = connectWireGuard(config: config)
+        if success { statusSink?("connected") }
+        result(success)
       } else {
         result(FlutterError(code: "BAD_ARGS", message: "Config param missing", details: nil))
       }
       
     case "disconnect":
-      result(disconnectWireGuard())      
+      let success = disconnectWireGuard()
+      if success { statusSink?("disconnected") }
+      result(success)
     default:
       result(FlutterMethodNotImplemented)
     }
@@ -46,6 +56,7 @@ public class FlutterWireguardPlugin: NSObject, FlutterPlugin {
     process.waitUntilExit()
     if process.terminationStatus == 0 {
       configPath = tempURL.path
+      isConnected = true
       return true
     }
     return false
@@ -59,6 +70,17 @@ public class FlutterWireguardPlugin: NSObject, FlutterPlugin {
     process.launch()
     process.waitUntilExit()
     configPath = nil
+    isConnected = false
     return process.terminationStatus == 0
+  }
+  public func onListen(withArguments arguments: Any?, eventSink: @escaping FlutterEventSink) -> FlutterError? {
+    statusSink = eventSink
+    eventSink(isConnected ? "connected" : "disconnected")
+    return nil
+  }
+
+  public func onCancel(withArguments arguments: Any?) -> FlutterError? {
+    statusSink = nil
+    return nil
   }
 }

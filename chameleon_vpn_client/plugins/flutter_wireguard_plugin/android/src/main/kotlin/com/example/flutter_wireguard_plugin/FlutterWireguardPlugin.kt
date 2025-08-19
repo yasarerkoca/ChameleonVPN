@@ -2,20 +2,27 @@ package com.example.flutter_wireguard_plugin
 
 import android.content.Context
 import io.flutter.embedding.engine.plugins.FlutterPlugin
+import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
 import java.io.File
 
-class FlutterWireguardPlugin: FlutterPlugin, MethodCallHandler {
+class FlutterWireguardPlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamHandler {
   private lateinit var channel : MethodChannel
+  private lateinit var statusChannel: EventChannel
+  private var events: EventChannel.EventSink? = null
   private lateinit var context: Context
   private var lastConfigFile: File? = null
+  private var isConnected = false
+
   override fun onAttachedToEngine(flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
     context = flutterPluginBinding.applicationContext
     channel = MethodChannel(flutterPluginBinding.binaryMessenger, "flutter_wireguard_plugin")
     channel.setMethodCallHandler(this)
+    statusChannel = EventChannel(flutterPluginBinding.binaryMessenger, "flutter_wireguard_plugin/status")
+    statusChannel.setStreamHandler(this)
   }
 
   override fun onMethodCall(call: MethodCall, result: Result) {
@@ -46,6 +53,15 @@ class FlutterWireguardPlugin: FlutterPlugin, MethodCallHandler {
     channel.setMethodCallHandler(null)
   }
 
+  override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
+    this.events = events
+    events?.success(if (isConnected) "connected" else "disconnected")
+  }
+
+  override fun onCancel(arguments: Any?) {
+    events = null
+  }
+
   private fun connectWireGuard(config: String): Boolean {
     return try {
       val file = File.createTempFile("wg", ".conf", context.cacheDir)
@@ -54,6 +70,8 @@ class FlutterWireguardPlugin: FlutterPlugin, MethodCallHandler {
       val exit = process.waitFor()
       if (exit == 0) {
         lastConfigFile = file
+        isConnected = true
+        events?.success("connected")
         true
       } else {
         file.delete()
@@ -72,7 +90,12 @@ class FlutterWireguardPlugin: FlutterPlugin, MethodCallHandler {
       val exit = process.waitFor()
       file.delete()
       lastConfigFile = null
-      exit == 0
+      val success = exit == 0
+      if (success) {
+        isConnected = false
+        events?.success("disconnected")
+      }
+      success
     } catch (e: Exception) {
       e.printStackTrace()
       false

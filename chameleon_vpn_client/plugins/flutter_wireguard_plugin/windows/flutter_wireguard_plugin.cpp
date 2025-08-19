@@ -3,7 +3,8 @@
 #include <flutter/method_channel.h>
 #include <flutter/plugin_registrar_windows.h>
 #include <flutter/standard_method_codec.h>
-
+#include <flutter/event_channel.h>
+#include <flutter/stream_handler_functions.h>
 #include <windows.h>
 #include <fstream>
 #include <string>
@@ -20,6 +21,10 @@ void FlutterWireguardPlugin::RegisterWithRegistrar(
       std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
           registrar->messenger(), "flutter_wireguard_plugin",
           &flutter::StandardMethodCodec::GetInstance());
+  auto event_channel =
+      std::make_unique<flutter::EventChannel<flutter::EncodableValue>>(
+          registrar->messenger(), "flutter_wireguard_plugin/status",
+          &flutter::StandardMethodCodec::GetInstance());
 
   auto plugin = std::make_unique<FlutterWireguardPlugin>();
 
@@ -27,6 +32,19 @@ void FlutterWireguardPlugin::RegisterWithRegistrar(
       [plugin_pointer = plugin.get()](const auto& call, auto result) {
         plugin_pointer->HandleMethodCall(call, std::move(result));
       });
+  event_channel->SetStreamHandler(
+      std::make_unique<flutter::StreamHandlerFunctions<flutter::EncodableValue>>(
+          [plugin_pointer = plugin.get()](const flutter::EncodableValue* args,
+                                         std::unique_ptr<flutter::EventSink<flutter::EncodableValue>>&& events) {
+            plugin_pointer->status_sink_ = std::move(events);
+            plugin_pointer->SendStatus();
+            return nullptr;
+          },
+          [plugin_pointer = plugin.get()](const flutter::EncodableValue* args) {
+            plugin_pointer->status_sink_.reset();
+            return nullptr;
+          }));
+
 
   registrar->AddPlugin(std::move(plugin));
 }
@@ -70,6 +88,8 @@ void FlutterWireguardPlugin::HandleMethodCall(
             CloseHandle(pi.hThread);
             if (exit_code == 0) {
               last_config_path_ = std::wstring(temp_file);
+              is_connected_ = true;
+              SendStatus();
               result->Success(flutter::EncodableValue(true));
               return;
             }
@@ -100,6 +120,8 @@ void FlutterWireguardPlugin::HandleMethodCall(
       CloseHandle(pi.hProcess);
       CloseHandle(pi.hThread);
       last_config_path_.clear();
+      is_connected_ = exit_code == 0 ? false : is_connected_;
+      SendStatus();
       result->Success(flutter::EncodableValue(exit_code == 0));
     } else {
       result->Success(flutter::EncodableValue(false));
@@ -107,6 +129,11 @@ void FlutterWireguardPlugin::HandleMethodCall(
   }
   else {
     result->NotImplemented();
+  }
+}
+void FlutterWireguardPlugin::SendStatus() {
+  if (status_sink_) {
+    status_sink_->Success(flutter::EncodableValue(is_connected_ ? "connected" : "disconnected"));
   }
 }
 

@@ -1,4 +1,3 @@
-from fastapi import APIRouter, Depends, HTTPException
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from sqlalchemy.orm import Session
 from fastapi_limiter.depends import RateLimiter
@@ -13,7 +12,13 @@ from app.utils.auth.auth_utils import (
     verify_password,
 )
 
-from app.utils.token import create_access_token, create_refresh_token
+from app.services.jwt_service import (
+    create_access_token,
+    create_refresh_token,
+    create_email_verification_token,
+    verify_email_verification_token,
+)
+from app.services.email_verification_service import send_verification_email
 
 router = APIRouter(
     prefix="/auth",
@@ -66,6 +71,8 @@ def login(
     user = db.query(User).filter(User.email == data.email).first()
     if not user or not verify_password(data.password, user.password_hash):
         raise HTTPException(status_code=401, detail="Invalid credentials")
+    if not user.is_email_verified:
+        raise HTTPException(status_code=403, detail="Email not verified")
     token = create_access_token(data={"sub": user.email, "user_id": user.id})
     refresh = create_refresh_token(data={"sub": user.email, "user_id": user.id})
     return {

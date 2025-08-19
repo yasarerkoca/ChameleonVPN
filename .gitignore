@@ -153,3 +153,4 @@ chameleon_vpn_client/ios/Flutter/Flutter.podspec
 
 # Allow Flutter lib directory
 !chameleon_vpn_client/lib/
+!chameleon_vpn_client/plugins/flutter_wireguard_plugin/lib/

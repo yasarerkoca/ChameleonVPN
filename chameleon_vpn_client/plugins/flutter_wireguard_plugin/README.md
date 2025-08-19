@@ -1,18 +1,19 @@
-# flutter_wireguard_plugin
+# Flutter WireGuard Plugin
+Basit WireGuard VPN bağlantıları için Flutter eklentisi.
 
-A new Flutter plugin project.
+## Gerekli Araçlar
+Eklenti çalışmadan önce hedef platformda aşağıdaki komut satırı araçları
+kurulu olmalıdır:
 
-## Getting Started
+- `wg-quick` (wireguard-tools paketinde bulunur)
+- `openvpn`
 
-This project is a starting point for a Flutter
-[plug-in package](https://flutter.dev/to/develop-plugins),
-a specialized package that includes platform-specific implementation code for
-Android and/or iOS.
+## Örnek Kullanım
+```dart
+import 'package:flutter_wireguard_plugin/flutter_wireguard_plugin.dart';
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+await FlutterWireguardPlugin.connect(configString);
+await FlutterWireguardPlugin.disconnect();
+FlutterWireguardPlugin.statusStream.listen(print);
+```
 
-The plugin project was generated without specifying the `--platforms` flag, no platforms are currently supported.
-To add platforms, run `flutter create -t plugin --platforms <platforms> .` in this directory.
-You can also find a detailed instruction on how to add platforms in the `pubspec.yaml` at https://flutter.dev/to/pubspec-plugin-platforms.

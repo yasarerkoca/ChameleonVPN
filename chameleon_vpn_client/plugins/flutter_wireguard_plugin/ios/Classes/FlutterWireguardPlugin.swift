@@ -2,14 +2,17 @@ import Flutter
 import UIKit
 import NetworkExtension
 
-public class FlutterWireguardPlugin: NSObject, FlutterPlugin {
+public class FlutterWireguardPlugin: NSObject, FlutterPlugin, FlutterStreamHandler {
   private var isConnected = false
   private var manager: NETunnelProviderManager?
+  private var eventSink: FlutterEventSink?
 
   public static func register(with registrar: FlutterPluginRegistrar) {
     let channel = FlutterMethodChannel(name: "flutter_wireguard_plugin", binaryMessenger: registrar.messenger())
+    let eventChannel = FlutterEventChannel(name: "flutter_wireguard_plugin/status", binaryMessenger: registrar.messenger())
     let instance = FlutterWireguardPlugin()
     registrar.addMethodCallDelegate(instance, channel: channel)
+    eventChannel.setStreamHandler(instance)
   }
 
   public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
@@ -24,15 +27,28 @@ public class FlutterWireguardPlugin: NSObject, FlutterPlugin {
         return
       }
       let success = connectWireGuard(config: config)
+      if success { eventSink?("connected") }
       result(success)
 
     case "disconnect":
       let success = disconnectWireGuard()
+      if success { eventSink?("disconnected") }
       result(success)
 
     default:
       result(FlutterMethodNotImplemented)
     }
+  }
+
+  public func onListen(withArguments arguments: Any?, eventSink: @escaping FlutterEventSink) -> FlutterError? {
+    self.eventSink = eventSink
+    eventSink(isConnected ? "connected" : "disconnected")
+    return nil
+  }
+
+  public func onCancel(withArguments arguments: Any?) -> FlutterError? {
+    eventSink = nil
+    return nil
   }
 
   private func connectWireGuard(config: String) -> Bool {

@@ -1,8 +1,6 @@
 # app/utils/auth/auth_utils.py - Kimlik doğrulama yardımcı fonksiyonları
 
-import re
 import logging
-from datetime import datetime, timedelta
 from typing import Optional
 
 from fastapi import Depends, HTTPException, status, Request
@@ -12,7 +10,7 @@ from passlib.context import CryptContext
 from jose import jwt, JWTError
 
 from app.models.user.user import User
-from app.utils.token import decode_token
+from app.services.jwt_service import decode_token
 from app.utils.db.db_utils import get_db
 from app.config.base import settings
 from app.config.database import SessionLocal
@@ -87,23 +85,6 @@ def get_current_admin(
         )
     return current_user
 
-def create_email_verification_token(email: str) -> str:
-    expire = datetime.utcnow() + timedelta(minutes=30)
-    to_encode = {"sub": email, "exp": expire}
-    encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
-    return encoded_jwt
-
-def verify_email_verification_token(token: str) -> Optional[str]:
-    """
-    E-posta doğrulama token'ını çözer ve geçerli e-posta adresini döner.
-    """
-    try:
-        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-        return payload.get("sub")
-    except jwt.ExpiredSignatureError:
-        raise HTTPException(status_code=400, detail="Token süresi dolmuş.")
-    except JWTError:
-        raise HTTPException(status_code=400, detail="Geçersiz token.")
 async def get_current_user_jwt(request: Request) -> User:
     """JWT token'ı doğrudan isteğin Authorization başlığından çözüp kullanıcıyı döner."""
     auth_header = request.headers.get("Authorization")

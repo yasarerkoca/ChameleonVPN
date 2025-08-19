@@ -8,7 +8,7 @@ on:
 
 jobs:
   android:
-    name: Android AAB Build (no artifacts)
+    name: Android AAB Build
     runs-on: ubuntu-latest
     env:
       FLUTTER_VERSION: "3.22.2"
@@ -50,13 +50,81 @@ jobs:
         working-directory: chameleon_vpn_client
         run: flutter pub get
 
+      - name: Set version from tag
+        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_ENV
+
       # ❗ APK YOK — Resmi mağaza politikası gereği AAB build
       - name: Build AAB (release)
         working-directory: chameleon_vpn_client
-        run: flutter build appbundle --release -v
+        run: flutter build appbundle --release -v --build-name $VERSION --build-number $VERSION
 
-      # ❗ Artefact / Release upload YOK — mağaza yüklemesi resmi kanaldan yapılacak
+      - name: Upload AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-aab
+          path: chameleon_vpn_client/build/app/outputs/bundle/release/*.aab
+
       - name: Policy guard (fail if APK sneaks in)
         run: |
           if git grep -nE 'flutter build apk|\.apk\b' -- ':!*.md' ':!*.yml' ':!*.yaml' ; then
             echo "APK build/upload forbidden by policy."; exit 1; fi
+  ios:
+    name: iOS IPA Build
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.22.2"
+          channel: 'stable'
+          cache: true
+      - name: Set version from tag
+        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_ENV
+      - name: Pub get
+        working-directory: chameleon_vpn_client
+        run: flutter pub get
+      - name: Build IPA (release)
+        working-directory: chameleon_vpn_client
+        run: flutter build ipa --release --no-codesign -v --build-name $VERSION --build-number $VERSION
+      - name: Upload IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-ipa
+          path: chameleon_vpn_client/build/ios/ipa/*.ipa
+
+  backend:
+    name: Backend Docker Image
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set version from tag
+        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_ENV
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push image
+        run: |
+          docker build -t ghcr.io/${{ github.repository_owner }}/chameleonvpn-backend:${VERSION} backend
+          docker push ghcr.io/${{ github.repository_owner }}/chameleonvpn-backend:${VERSION}
+
+  release:
+    name: Create Release
+    needs: [android, ios, backend]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.ref_name }}
+          files: |
+            artifacts/android-aab/*.aab
+            artifacts/ios-ipa/*.ipa
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -14,11 +14,14 @@ dependencies:
   openvpn_flutter:
   flutter_wireguard_plugin:
     path: ./plugins/flutter_wireguard_plugin
+  flutter_riverpod: ^2.5.1
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
+  integration_test:
+    sdk: flutter
 
 flutter:
   uses-material-design: true

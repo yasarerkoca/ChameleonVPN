@@ -4,7 +4,8 @@
 #include <flutter/method_channel.h>
 #include <flutter/plugin_registrar_windows.h>
 #include <flutter/standard_method_codec.h>
-
+#include <flutter/event_channel.h>
+#include <flutter/stream_handler_functions.h>
 #include <memory>
 
 namespace flutter_wireguard_plugin {
@@ -26,8 +27,11 @@ class FlutterWireguardPlugin : public flutter::Plugin {
   void HandleMethodCall(
       const flutter::MethodCall<flutter::EncodableValue>& call,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result);
+  void SendStatus();
 
   std::wstring last_config_path_;
+  std::unique_ptr<flutter::EventSink<flutter::EncodableValue>> status_sink_;
+  bool is_connected_ = false;
 };
 
 }  // namespace flutter_wireguard_plugin

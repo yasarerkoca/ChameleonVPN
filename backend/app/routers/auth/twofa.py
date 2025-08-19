@@ -1,6 +1,5 @@
 # ~/ChameleonVPN/backend/app/routers/auth/twofa.py
-
-from fastapi import APIRouter, Depends, HTTPException, Request, Body
+from fastapi import APIRouter, Depends, HTTPException, Request, Body, Response
 from sqlalchemy.orm import Session
 from datetime import datetime
 import pyotp
@@ -11,7 +10,7 @@ from app.models.security.two_factor_tokens import TwoFactorToken
 from app.schemas.user.user_base import TwoFactorVerifyRequest
 from app.schemas.token.token_out import TokenOut
 from app.utils.auth.auth_utils import get_current_user
-from app.utils.token import create_access_token, create_refresh_token
+from app.services.jwt_service import create_access_token, create_refresh_token
 
 router = APIRouter(
     prefix="/auth/2fa",
@@ -22,7 +21,8 @@ router = APIRouter(
 def two_factor_verify(
     data: TwoFactorVerifyRequest,
     request: Request,
-    db: Session = Depends(get_db)
+    response: Response,
+    db: Session = Depends(get_db),
 ):
     """
     E-posta/SMS ile gelen 2FA kodunu doğrula. Başarılıysa is_2fa_verified=True yapar.
@@ -44,6 +44,12 @@ def two_factor_verify(
     user.is_2fa_verified = True
     db.commit()
     db.refresh(user)
+
+    response.set_cookie(
+        key="remember_device",
+        value="1",
+        httponly=True,
+    )
 
     return {
         "access_token": create_access_token({"sub": user.email, "user_id": user.id}),
@@ -67,15 +73,29 @@ def generate_totp(
     )
     return {"secret": secret, "otp_auth_url": otp_auth_url}
 
+@router.post("/setup", summary="TOTP 2FA kurulum endpointi")
+def setup_totp(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Yeni bir TOTP secret üretir ve kullanıcıya kaydeder."""
+    secret = pyotp.random_base32()
+    current_user.totp_secret = secret
+    db.commit()
+    otp_auth_url = pyotp.totp.TOTP(secret).provisioning_uri(
+        name=current_user.email, issuer_name="ChameleonVPN"
+    )
+    return {"secret": secret, "otp_auth_url": otp_auth_url}
+
+
 @router.post("/login-totp", response_model=TokenOut, summary="TOTP ile giriş yap (mobil uygulama/Google Auth)")
 def login_totp(
+    response: Response,
     email: str = Body(..., embed=True),
     totp_code: str = Body(..., embed=True),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
-    """
-    Mobil TOTP (Google Authenticator) ile doğrulama. Başarılıysa is_2fa_verified=True yapar.
-    """
+    """Mobil TOTP (Google Authenticator) ile doğrulama. Başarılıysa is_2fa_verified=True yapar."""
     user = db.query(User).filter(User.email == email).first()
     if not user or not user.totp_secret or not pyotp.TOTP(user.totp_secret).verify(totp_code):
         raise HTTPException(status_code=400, detail="Invalid 2FA code or user")
@@ -85,8 +105,14 @@ def login_totp(
     db.commit()
     db.refresh(user)
 
+    response.set_cookie(
+        key="remember_device",
+        value="1",
+        httponly=True,
+    )
+
     return {
         "access_token": create_access_token({"sub": user.email, "user_id": user.id}),
         "refresh_token": create_refresh_token({"sub": user.email, "user_id": user.id}),
-        "token_type": "bearer"
+        "token_type": "bearer",
     }

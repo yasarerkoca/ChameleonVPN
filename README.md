@@ -37,12 +37,12 @@ docker-compose up --build
 
 Her modül kendi klasöründe ayrıntılı bir `README.md` dosyası barındırır.
 
-## ⚙️ Gereksinimler
+## Kullanıcı Doğrulama
 
-- Flutter 3.3+
-- Hedef platformda WireGuard araçlarının kurulu olması (`wg-quick`, `wireguard.exe` vb.)
-- iOS ve macOS için Network Extension yetkisi
-- Android tarafında root erişimi veya WireGuard SDK
+Yeni kayıt olan kullanıcılar e-postalarına gönderilen bağlantı ile hesaplarını doğrulamalıdır.
+Doğrulanmamış hesaplar giriş yapmaya çalıştığında API `403 Forbidden` döner ve hesap "pending verification" durumunda kalır.
+
+## ⚙️ Gereksinimler
 
 ## 🔌 Kullanım Örneği
 
@@ -91,4 +91,4 @@ isteyenler `CONTRIBUTING.md` dosyasını inceleyebilir.
 ## 🛡️ Lisans
 
 Bütün hakları Yaşar Erkoca'a aittir.
-Ayrıntılar için `chameleon_vpn_client/plugins/flutter_wireguard_plugin/LICENSE` dosyasına bakın.  
+Ayrıntılar için `chameleon_vpn_client/plugins/flutter_wireguard_plugin/LICENSE` dosyasına bakın.
