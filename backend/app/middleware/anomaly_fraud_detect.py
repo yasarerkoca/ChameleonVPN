@@ -1,17 +1,30 @@
-import time
 import re
 from fastapi import HTTPException
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
-from .common import should_bypass
 
-# Basit bellek içi trafik ve davranış kaydı
-_REQUEST_LOG = {}
+import redis.asyncio as aioredis
+
+from .common import should_bypass
+from app.config.base import settings
+
+# Redis tabanlı istek sayacı. TTL sayesinde eski kayıtlar otomatik silinir.
+_REQUEST_STORE = aioredis.from_url(
+    settings.REDIS_URL, encoding="utf-8", decode_responses=True
+)
 
 # Şüpheli UA ve payload desenleri
 _BAD_UA = ("curl", "bot", "crawler", "scan")
 _SUSPICIOUS_RE = re.compile(r"(union select|drop table|or 1=1|<script)", re.IGNORECASE)
 _MAX_PER_MINUTE = 100
+
+_RATE_LIMIT_LUA = """
+local current = redis.call('incr', KEYS[1])
+if current == 1 then
+  redis.call('expire', KEYS[1], ARGV[1])
+end
+return current
+"""
 
 class AnomalyFraudDetectMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
@@ -25,14 +38,13 @@ class AnomalyFraudDetectMiddleware(BaseHTTPMiddleware):
             )
             ua = request.headers.get("user-agent", "").lower()
 
-            # Basit rate limit kontrolü
-            now = time.time()
-            times = _REQUEST_LOG.setdefault(client_ip, [])
-            while times and now - times[0] > 60:
-                times.pop(0)
-            if len(times) >= _MAX_PER_MINUTE:
-                raise HTTPException(status_code=429, detail="Şüpheli yoğun istek tespit edildi")
-            times.append(now)
+            # Basit rate limit kontrolü (Redis üstünde atomik sayaç)
+            key = f"af:req:{client_ip}"
+            count = await _REQUEST_STORE.eval(_RATE_LIMIT_LUA, 1, key, 60)
+            if int(count) > _MAX_PER_MINUTE:
+                raise HTTPException(
+                    status_code=429, detail="Şüpheli yoğun istek tespit edildi"
+                )
 
             # UA boş veya bilinen bot ise engelle
             if not ua or any(bad in ua for bad in _BAD_UA):

@@ -11,7 +11,6 @@ async def test_register_and_login(client):
         "full_name": "Verified User"
     }
     resp = await client.post("/auth/register", json=data)
-UEST, status.HTTP_409_CONFLICT), resp.text
     assert resp.status_code in (
         status.HTTP_201_CREATED,
         status.HTTP_400_BAD_REQUEST,
@@ -21,6 +20,7 @@ UEST, status.HTTP_409_CONFLICT), resp.text
     token = create_email_verification_token(data["email"])
     await client.get(f"/auth/verify-email?token={token}")
     login_data = {"email": data["email"], "password": data["password"]}
+    resp = await client.post("/auth/login", json=login_data)
     assert resp.status_code == status.HTTP_200_OK
     token = resp.json().get("access_token")
     assert token is not None
