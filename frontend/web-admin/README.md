@@ -1,14 +1,27 @@
 # Chameleon Web Admin
 
 ## Kurulum
-npm ci
+```bash
+npm install
+```
 
 ## Geliştirme
+```bash
 npm run dev
-# ENV: .env.local dosyası oluşturun (aşağıdaki örnek)
-
-## Test
-npm test -- --watchAll=false
+```
+`.env.local` dosyası oluşturun (aşağıdaki örnek).
 
 ## Build
-npm run build && npm run start
+```bash
+npm run build
+```
+
+## Çalıştırma
+```bash
+npm run start
+```
+
+## Test
+```bash
+npm test -- --watchAll=false
+```

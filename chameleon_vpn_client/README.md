@@ -22,3 +22,17 @@ flutter test integration_test
 ## Build (Android)
 flutter build apk --release
 # Çıktı: build/app/outputs/flutter-apk/app-release.apk
+
+## Google ile Giriş
+
+Uygulama Google hesaplarıyla oturum açmayı destekler. Bu özelliği
+etkinleştirmek için Google Cloud Console üzerinden bir OAuth istemcisi
+oluşturun ve mobil uygulamaya uygun `client_id` değerini ayarlayın.
+
+```dart
+final token = await signInWithGoogle();
+```
+
+`signInWithGoogle` fonksiyonu kullanıcıyı Google hesabıyla
+kimlik doğrular ve elde edilen ID token'ını backend API'sine göndererek
+uygulama için bir erişim jetonu oluşturur.

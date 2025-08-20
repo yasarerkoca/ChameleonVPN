@@ -5,7 +5,13 @@ import hmac
 import hashlib
 import base64
 import logging
+from typing import Optional
 
+from sqlalchemy.orm import Session
+
+from app.config.database import SessionLocal
+from app.models.billing.payment import Payment
+from app.models.billing.billing_history import BillingHistory
 
 logger = logging.getLogger(__name__)
 
@@ -32,14 +38,39 @@ def _verify_stripe_signature(payload: bytes, sig_header: str):
     except stripe.error.SignatureVerificationError:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid signature")
 
-def _handle_stripe_event(event: dict):
-
+def _handle_stripe_event(event: dict, db: Optional[Session] = None):
     event_type = event.get("type")
     if event_type == "checkout.session.completed":
         session = event["data"]["object"]
         session_id = session.get("id")
         logger.info("Stripe session completed: %s", session_id)
-        # TODO: işleme mantığını ekle
+
+        payment_id = session.get("metadata", {}).get("payment_id")
+        if not payment_id:
+            return
+
+        local_db = db or SessionLocal()
+        try:
+            payment = (
+                local_db.query(Payment)
+                .filter(Payment.id == int(payment_id))
+                .first()
+            )
+            if payment:
+                payment.status = "completed"
+                billing = BillingHistory(
+                    user_id=payment.user_id,
+                    transaction_id=session_id,
+                    amount=payment.amount,
+                    status="completed",
+                )
+                local_db.add(billing)
+                local_db.commit()
+            else:
+                logger.warning("Payment not found for id %s", payment_id)
+        finally:
+            if db is None:
+                local_db.close()
 
 def _verify_iyzico_signature(payload: bytes, signature: str):
     secret = os.getenv("IYZICO_SECRET_KEY")
@@ -53,12 +84,36 @@ def _verify_iyzico_signature(payload: bytes, signature: str):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid signature")
     return json.loads(payload)
 
-def _handle_iyzico_event(event: dict):
+def _handle_iyzico_event(event: dict, db: Optional[Session] = None):
     event_type = event.get("iyz_event_type") or event.get("eventType")
     if event_type == "payment.succeeded":
         payment_id = event.get("paymentId")
         logger.info("iyzico payment succeeded: %s", payment_id)
-        # TODO: işleme mantığını ekle
+        if not payment_id:
+            return
+
+        local_db = db or SessionLocal()
+        try:
+            payment = (
+                local_db.query(Payment)
+                .filter(Payment.id == int(payment_id))
+                .first()
+            )
+            if payment:
+                payment.status = "completed"
+                billing = BillingHistory(
+                    user_id=payment.user_id,
+                    transaction_id=str(payment_id),
+                    amount=payment.amount,
+                    status="completed",
+                )
+                local_db.add(billing)
+                local_db.commit()
+            else:
+                logger.warning("Payment not found for id %s", payment_id)
+        finally:
+            if db is None:
+                local_db.close()
 @router.post("/stripe", summary="Stripe webhook endpoint'i")
 async def stripe_webhook(request: Request):
     """Stripe'dan gelen webhook'ları işler."""

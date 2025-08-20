@@ -1,46 +1,93 @@
-@@ -60,35 +60,45 @@ api.interceptors.response.use(
+import axios from 'axios';
+import { notifyError } from './middleware.js';
+
+const API_BASE = process.env.API_BASE_URL || '/api';
+
+let accessToken = localStorage.getItem('accessToken');
+let refreshToken = localStorage.getItem('refreshToken');
+
 export function setAuthTokens(tokens) {
-  localStorage.setItem('accessToken', tokens.accessToken);
-  localStorage.setItem('refreshToken', tokens.refreshToken);
+  accessToken = tokens.accessToken;
+  refreshToken = tokens.refreshToken;
+  localStorage.setItem('accessToken', accessToken);
+  localStorage.setItem('refreshToken', refreshToken);
 }
 
+export function clearAuthTokens() {
+  accessToken = null;
+  refreshToken = null;
+  localStorage.removeItem('accessToken');
+  localStorage.removeItem('refreshToken');
+}
+const api = axios.create({ baseURL: API_BASE });
+
+api.interceptors.request.use((config) => {
+  if (accessToken) {
+    config.headers = config.headers || {};
+    config.headers.Authorization = `Bearer ${accessToken}`;
+  }
+  return config;
+});
+
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const { config, response } = error;
+    if (response && response.status === 401 && !config._retry) {
+      config._retry = true;
+      try {
+        if (!refreshToken) throw new Error('No refresh token');
+        const { data } = await axios.post(`${API_BASE}/refresh`, { refreshToken });
+        setAuthTokens({ accessToken: data.accessToken, refreshToken: data.refreshToken ?? refreshToken });
+        config.headers.Authorization = `Bearer ${data.accessToken}`;
+        return api(config);
+      } catch (refreshError) {
+        clearAuthTokens();
+        return Promise.reject(refreshError);
+      }
+    }
+    if (response && (response.status === 429 || response.status >= 500)) {
+      notifyError(response);
+    }
+    return Promise.reject(error);
+  }
+);
 export async function login(username, password) {
-  // Burayı gerçek backend login endpointine bağlamalısın.
-  // Şimdilik dummy token üretiyoruz.
+  const { data } = await api.post('/auth/login', { email: username, password });
   const tokens = {
-    accessToken: `${username}-token`,
-    refreshToken: `${username}-refresh`,
+    accessToken: data.access_token,
+    refreshToken: data.refresh_token,
   };
   setAuthTokens(tokens);
   return tokens;
 }
 
 // ==========================
-// Example API Calls
+// API Calls
 // ==========================
 export const fetchTodo = () =>
-  api.get('/todos/1').then((res) => res.data);
+  api.get('/admin/status-management/health').then((res) => res.data);
 
 export const fetchUsers = () =>
-  api.get('/users').then((res) => res.data);
+  api.get('/admin/user-management/users').then((res) => res.data);
 
 // CRUD helpers for user management used in admin flows
 export const createUser = (user) =>
-  api.post('/users', user).then((res) => res.data);
+  api.post('/admin/user-management/users', user).then((res) => res.data);
 
 export const updateUser = (id, user) =>
-  api.put(`/users/${id}`, user).then((res) => res.data);
+  api.put(`/admin/user-management/users/${id}`, user).then((res) => res.data);
 
 export const deleteUser = (id) =>
-  api.delete(`/users/${id}`).then((res) => res.status === 200);
+  api.delete(`/admin/user-management/users/${id}`).then((res) => res.status === 200);
 
 export const fetchSubscriptions = () =>
-  api.get('/posts').then((res) => res.data);
+  api.get('/membership/plan-list').then((res) => res.data);
 
 export const fetchServers = () =>
-  api.get('/albums').then((res) => res.data);
+  api.get('/vpn/server').then((res) => res.data);
 
 export const fetchLogs = () =>
-  api.get('/comments').then((res) => res.data);
+  api.get('/admin/ai-selection-log').then((res) => res.data);
 
 export default api;

@@ -32,6 +32,3 @@ flutter:
         pluginClass: FlutterWireguardPlugin
       macos:
         pluginClass: FlutterWireguardPlugin
-
-flutter_wireguard_plugin:
-  path: ./plugins/flutter_wireguard_plugin

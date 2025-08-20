@@ -10,14 +10,14 @@ dependencies:
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.8
-  http:
-  openvpn_flutter:
+  http: ^1.5.0
+  openvpn_flutter: ^1.3.4
   flutter_wireguard_plugin:
     path: ./plugins/flutter_wireguard_plugin
   flutter_riverpod: ^2.5.1
-  flutter_secure_storage:
+  flutter_secure_storage: ^9.0.0
   shared_preferences: ^2.2.2
-
+  google_sign_in: ^6.2.1
 dev_dependencies:
   flutter_test:
     sdk: flutter
