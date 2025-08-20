@@ -1,0 +1,21 @@
+{
+  "id": null,
+  "uid": "backend",
+  "title": "Backend Metrics",
+  "timezone": "",
+  "schemaVersion": 16,
+  "version": 1,
+  "panels": [
+    {
+      "type": "graph",
+      "title": "Request Duration",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "fastapi_request_duration_seconds_sum",
+          "refId": "A"
+        }
+      ]
+    }
+  ]
+}

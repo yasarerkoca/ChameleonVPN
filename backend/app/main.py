@@ -7,6 +7,8 @@ from fastapi.routing import APIRoute
 from fastapi_limiter import FastAPILimiter
 from fastapi_limiter.depends import RateLimiter
 from prometheus_fastapi_instrumentator import Instrumentator
+import sentry_sdk
+from sentry_sdk.integrations.fastapi import FastApiIntegration
 
 from app.config.base import settings
 from app.middleware.api_key_log import APIKeyAccessLogger
@@ -25,6 +27,12 @@ from app.events.shutdown_events import register_shutdown_events
 
 import redis.asyncio as aioredis
 
+# Sentry APM
+if settings.SENTRY_DSN:
+    sentry_sdk.init(
+        dsn=settings.SENTRY_DSN,
+        integrations=[FastApiIntegration()],
+    )
 
 # --- OpenAPI'de benzersiz operationId üretimi ---
 def gen_unique_id(route: APIRoute) -> str:

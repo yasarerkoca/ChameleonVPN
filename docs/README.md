@@ -1,6 +1,10 @@
 # ChameleonVPN Dokümantasyonu
 
 Bu belge API uç noktalarını, mimari kararları ve kurulum/dağıtım adımlarını özetler.
+## Policies
+
+- [Privacy Policy](privacy.md)
+- [Terms of Service](terms.md)
 
 ## API Uçları
 

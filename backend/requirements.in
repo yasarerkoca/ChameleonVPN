@@ -15,6 +15,7 @@ sqlalchemy
 starlette
 stripe
 redis
+sentry-sdk
 uvicorn
 psycopg2-binary
 alembic

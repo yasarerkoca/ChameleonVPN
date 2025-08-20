@@ -62,6 +62,9 @@ class Settings(BaseSettings):
     GOOGLE_CLIENT_SECRET: Optional[str] = None
     GOOGLE_REDIRECT_URI: Optional[str] = None
 
+    # --- Sentry (opsiyonel) ---
+    SENTRY_DSN: Optional[str] = None
+
     # ---- Validators ----
     @field_validator("DATABASE_URL", mode="before")
     @classmethod

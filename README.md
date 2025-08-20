@@ -82,11 +82,25 @@ Uygulamayı Docker ile çalıştırmadan önce aşağıdaki ortam değişkeninin
 
 - `UVICORN_WORKERS` – Uvicorn işçi sayısı (varsayılan `2`).
 
+## 🔐 GitHub Actions Secrets
+
+Projeyi GitHub Actions ile dağıtırken şu gizli değişkenleri **Settings ➜ Secrets and variables ➜ Actions** altında tanımlayın:
+
+- `PROD_HOST`, `PROD_USER`, `PROD_SSH_KEY` – üretim sunucusuna SSH ile bağlanmak için.
+- `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_PASSWORD`, `ANDROID_KEY_ALIAS` – Android imzalama anahtarları.
+- `IOS_CERT_BASE64`, `IOS_PROVISION_PROFILE_BASE64`, `IOS_CERT_PASSWORD` – iOS imzalama sertifikaları.
+
 
 ## 📚 Dokümantasyon ve Katkı
 
 Ek belgeler için `chameleonvpn/docs/` dizinine göz atın. Katkıda bulunmak
 isteyenler `CONTRIBUTING.md` dosyasını inceleyebilir.
+
+## 📄 Policies
+
+- [Privacy Policy](docs/privacy.md)
+- [Terms of Service](docs/terms.md)
+
 
 ## 🛡️ Lisans
 
