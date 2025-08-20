@@ -1,104 +1,68 @@
-# docker-compose.yml (Compose V2: version satırı yok)
-x-common-env: &common-env
-  env_file:
-    - .env
-
-x-log-defaults: &log-defaults
-  logging:
-    driver: json-file
-    options:
-      max-size: "10m"
-      max-file: "3"
+version: "3.9"
 
 services:
   db:
-   <<: [*common-env, *log-defaults]
     image: postgres:14
-    container_name: chameleon_db
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-chameleonvpn}
-      POSTGRES_USER: ${POSTGRES_USER:-vpnadmin}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-    ports:
-      - "5432:5432"
+      POSTGRES_DB: chameleonvpn
+      POSTGRES_USER: vpnadmin
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-iryna}
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-    restart: on-failure
+      - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      test: ["CMD-SHELL", "pg_isready -U vpnadmin -d chameleonvpn"]
       interval: 10s
       timeout: 5s
-      retries: 5
-      start_period: 15s
+      retries: 10
+    restart: unless-stopped
 
   redis:
-    <<: [*common-env, *log-defaults]
-    image: redis:7
-    container_name: chameleon_redis
-    ports:
-      - "6379:6379"
-    restart: on-failure
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redisdata:/data
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 5s
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
 
   backend:
-    <<: *common-env
-    env_file:
-      - .env
-      - ./backend/.env
     build:
       context: ./backend
-    container_name: chameleon_backend
-    init: true
-    command: >
-      /bin/sh -lc '
-      mkdir -p /var/log/backend &&
-      chmod -R 770 /var/log/backend &&
-      alembic upgrade head &&
-      exec uvicorn app.main:app --host 0.0.0.0 --port 8000 --proxy-headers --workers ${UVICORN_WORKERS:-2}
-      '
-    ports:
-      - "8000:8000"
+      dockerfile: app/Dockerfile
+    env_file:
+      - ./backend/.env
     environment:
-      LOG_DIR: /var/log/backend
-      DB_HOST: db
-      DB_PORT: "5432"
-      REDIS_HOST: redis
-      REDIS_PORT: "6379"
-      PYTHONUNBUFFERED: "1"
+      DATABASE_URL: postgresql+psycopg2://vpnadmin:${POSTGRES_PASSWORD:-iryna}@db:5432/chameleonvpn
+      REDIS_URL: redis://redis:6379/0
+      ALLOWED_ORIGINS: '["http://localhost","http://127.0.0.1"]'
     depends_on:
       db:
         condition: service_healthy
       redis:
         condition: service_healthy
     healthcheck:
-      test:
-        - CMD
-        - python
-        - -c
-        - |
-            import json, urllib.request, sys, time
-            ok = False
-            for _ in range(5):
-                try:
-                    d = json.loads(urllib.request.urlopen('http://127.0.0.1:8000/healthz', timeout=2).read())
-                    ok = d.get('ok', False)
-                    if ok:
-                        break
-                except Exception:
-                    time.sleep(1)
-            sys.exit(0 if ok else 1)
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8000/healthz"]
       interval: 10s
       timeout: 5s
-      retries: 5
-      start_period: 30s
+      retries: 10
+    ports:
+      - "8000:8000"
     restart: unless-stopped
-    volumes:
-      - ./backend:/app:ro
-      - ./logs/backend:/var/log/backend:rw
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.nginx
+    ports:
+      - "80:80"
+    depends_on:
+      backend:
+        condition: service_started
+    restart: unless-stopped
+
 volumes:
-  postgres_data:
+  pgdata:
+  redisdata:
