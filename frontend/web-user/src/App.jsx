@@ -1,24 +1,21 @@
-import React from 'react';
-import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
-import UserPanel from './components/UserPanel';
-import ServerSelect from './pages/ServerSelect';
-import Profile from './pages/Profile';
-import Keys from './pages/Keys';
-import Downloads from './pages/Downloads';
+import React from 'react'
+import { Routes, Route, Link } from 'react-router-dom'
+import UserPanel from './components/UserPanel.jsx'
+import ServerSelect from './pages/ServerSelect.jsx'
+import Profile from './pages/Profile.jsx'
+import Keys from './pages/Keys.jsx'
+import Downloads from './pages/Downloads.jsx'
 
-/**
- * Root application component for the web user portal.
- * Provides routing to user features such as server selection,
- * profile management, key retrieval and configuration downloads.
- */
-function App() {
+// Not: BrowserRouter zaten src/main.jsx içinde. Burada tekrar sarmalama yok.
+export default function App() {
   return (
-    <BrowserRouter>
+    <>
       <nav>
         <Link to="/">Home</Link> | <Link to="/servers">Servers</Link> |{' '}
         <Link to="/profile">Profile</Link> | <Link to="/keys">Keys</Link> |{' '}
         <Link to="/downloads">Downloads</Link>
       </nav>
+
       <Routes>
         <Route
           path="/"
@@ -34,8 +31,6 @@ function App() {
         <Route path="/keys" element={<Keys />} />
         <Route path="/downloads" element={<Downloads />} />
       </Routes>
-    </BrowserRouter>
-  );
+    </>
+  )
 }
-
-export default App;
