@@ -1,10 +1,9 @@
 # ~/ChameleonVPN/backend/app/config/base.py
-
+import os
+import json
 from typing import Optional, List
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import field_validator, ValidationError, Field, AliasChoices
-import os
-import json
 
 class Settings(BaseSettings):
     """
