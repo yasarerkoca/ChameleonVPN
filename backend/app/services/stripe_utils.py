@@ -2,7 +2,9 @@ import stripe
 import os
 
 # .env veya config dosyandan anahtarları çek
-STRIPE_API_KEY = os.getenv("STRIPE_API_KEY", "sk_test_xxx")  # Gerçek anahtarını ekle
+STRIPE_API_KEY = os.getenv("STRIPE_API_KEY")
+if not STRIPE_API_KEY:
+    raise RuntimeError("STRIPE_API_KEY environment variable is not set")
 
 stripe.api_key = STRIPE_API_KEY
 

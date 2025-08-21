@@ -33,7 +33,8 @@ ortam dosyasını kopyalayın:
 
 ```bash
 cp backend/.env.example backend/.env
-POSTGRES_PASSWORD=<parola> docker-compose up --build
+# backend/.env dosyasını düzenleyip güçlü bir POSTGRES_PASSWORD belirleyin
+POSTGRES_PASSWORD=<güçlü-parola> docker-compose up --build
 ```
 
 Her modül kendi klasöründe ayrıntılı bir `README.md` dosyası barındırır.
@@ -79,11 +80,12 @@ Future<void> disconnect() async {
 çalıştırmadan önce bu dosyayı `backend/.env` olarak kopyalayıp düzenleyin ve
 aşağıdaki ortam değişkenini tanımlayın:
 
-- `POSTGRES_PASSWORD` – PostgreSQL veritabanı parolası.
+- `POSTGRES_PASSWORD` – PostgreSQL veritabanı parolası. Güçlü bir değer tanımlayın; varsayılan yoktur.
 
 İsteğe bağlı değişkenler:
 
 - `UVICORN_WORKERS` – Uvicorn işçi sayısı (varsayılan `2`).
+- `PASSWORD_RESET_URL` – Şifre sıfırlama e-postalarındaki bağlantının temel adresi (varsayılan `http://localhost:8000/reset-password`).
 
 ## 🔐 GitHub Actions Secrets
 

@@ -67,7 +67,7 @@ services:
     environment:
       POSTGRES_DB: chameleonvpn
       POSTGRES_USER: vpnadmin
-      POSTGRES_PASSWORD: iryna
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     restart: always

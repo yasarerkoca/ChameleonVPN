@@ -6,7 +6,7 @@ docker compose up -d --build
 
 ## Lokal Geliştirme
 cp .env.example .env
-# `.env` içindeki değişkenleri ihtiyaca göre düzenleyin
+# `.env` içindeki değişkenleri ihtiyaca göre düzenleyin ve güçlü bir POSTGRES_PASSWORD ayarlayın
 python -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
 uvicorn app.main:app --host 0.0.0.0 --port 8000
@@ -55,3 +55,5 @@ pytest -q
 - `SESSION_SECRET_KEY`=change-me-too (SessionMiddleware için zorunlu)
 - `JWT_ALGO`=HS256
 - `OAUTH_GOOGLE_CLIENT_ID`=...
+- `PASSWORD_RESET_URL`=http://localhost:8000/reset-password (şifre sıfırlama linki temeli)
+- `STRIPE_API_KEY`=... (Stripe secret API anahtarı)

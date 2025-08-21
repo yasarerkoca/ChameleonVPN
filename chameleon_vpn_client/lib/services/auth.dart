@@ -2,13 +2,13 @@ import 'dart:convert';
 
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
+import '../constants.dart';
 
 /// Handles authentication token storage and refresh logic.
 class AuthService {
-  AuthService({required this.baseUrl, FlutterSecureStorage? storage})
+  AuthService({FlutterSecureStorage? storage})
       : storage = storage ?? const FlutterSecureStorage();
 
-  final String baseUrl;
   final FlutterSecureStorage storage;
 
   static const _accessKey = 'access';

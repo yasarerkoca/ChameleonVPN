@@ -1,12 +1,11 @@
-mport 'dart:convert';
+import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'services/auth.dart';
 
+import 'constants.dart';
 /// Simple API client for interacting with the backend.
 class ApiService {
-  ApiService({required this.baseUrl, required this.auth});
-
-  final String baseUrl;
+  ApiService({required this.auth});
   final AuthService auth;
   /// Authenticate the user and store tokens on success.
   Future<bool> login(String email, String password) async {

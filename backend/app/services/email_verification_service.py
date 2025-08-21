@@ -46,7 +46,8 @@ async def send_reset_email(to_email: str, token: str) -> None:
         to_email (str): Kullanıcının e-posta adresi
         token (str): Şifre sıfırlama için token
     """
-    reset_link = f"http://localhost:8000/reset-password?email={to_email}&token={token}"
+    base_url = os.getenv("PASSWORD_RESET_URL", "http://localhost:8000/reset-password")
+    reset_link = f"{base_url}?email={to_email}&token={token}"
     subject = "ChameleonVPN - Şifre Sıfırlama"
     body = (
         f"Merhaba,\n\n"

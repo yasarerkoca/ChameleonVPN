@@ -46,7 +46,7 @@ Bu belge API uç noktalarını, mimari kararları ve kurulum/dağıtım adımlar
 
 ### Geliştirme Ortamı
 1. `cd backend`
-2. `.env` dosyasını gereken değişkenlerle düzenleyin
+2. `.env` dosyasını gereken değişkenlerle düzenleyin ve güçlü bir `POSTGRES_PASSWORD` tanımlayın
 3. `python -m venv venv && source venv/bin/activate`
 4. `pip install -r requirements.txt`
 5. `uvicorn app.main:app --host 0.0.0.0 --port 8000`
@@ -54,7 +54,7 @@ Bu belge API uç noktalarını, mimari kararları ve kurulum/dağıtım adımlar
 ### Docker ile Çalıştırma
 1. `backend/.env.example` dosyasını `backend/.env` olarak kopyalayıp ayarları
    yapın
-2. `POSTGRES_PASSWORD` ortam değişkenini belirleyin
+2. `POSTGRES_PASSWORD` ortam değişkenini güçlü bir parolayla tanımlayın
 3. `docker-compose up --build` komutu ile servisleri başlatın
 4. API `http://localhost:8000` adresinden ulaşılabilir
 

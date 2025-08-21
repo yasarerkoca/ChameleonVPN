@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../api_service.dart';
+import '../services/auth.dart';
 import 'subscription_screen.dart';
 
 /// Basic login form that authenticates the user against the API.
@@ -14,8 +15,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   late final ApiService api = ApiService(
-    baseUrl: 'https://example.com/api',
-    auth: AuthService(baseUrl: 'https://example.com/api'),
+    auth: AuthService(),
   );
   String? _error;
 
