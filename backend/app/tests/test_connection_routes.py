@@ -5,22 +5,19 @@ from fastapi import status
 async def test_create_connection_history(client):
     # 1) Önce bir user register et (idempotent olsun)
     register_data = {
-        "email": "yasarerkoca@gmail.com",
-        "password": "Aa1!aa1!bb2@BB2@",
-        "full_name": "yasar erkoca"
+        "email": "user@example.com",
+        "password": "TestPassword123!",
+        "full_name": "Test User"
     }
     reg_resp = await client.post("/auth/register", json=register_data)
-    print("REGISTER:", reg_resp.status_code, reg_resp.text)
     assert reg_resp.status_code in (status.HTTP_201_CREATED, status.HTTP_409_CONFLICT, status.HTTP_200_OK)
 
     # 2) Login ol
     login_data = {"email": register_data["email"], "password": register_data["password"]}
     login_resp = await client.post("/auth/login", json=login_data)
-    print("LOGIN:", login_resp.status_code, login_resp.text)
     assert login_resp.status_code == 200
 
     login_json = login_resp.json()
-    print("LOGIN RESPONSE:", login_json)
     token = login_json["access_token"]
     user_id = login_json["user_id"]
     headers = {"Authorization": f"Bearer {token}"}
@@ -59,5 +56,4 @@ async def test_create_connection_history(client):
         "success": True
     }
     conn_resp = await client.post("/vpn/connection/", json=conn_data, headers=headers)
-    print("VPN CONNECTION:", conn_resp.status_code, conn_resp.text)
     assert conn_resp.status_code in (status.HTTP_201_CREATED, status.HTTP_200_OK), conn_resp.text

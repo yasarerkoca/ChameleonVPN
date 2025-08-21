@@ -135,3 +135,7 @@ if settings.SECRET_KEY in ("", "dev-secret"):
     raise RuntimeError(
         "Kritik ortam değişkeni eksik: SECRET_KEY. Lütfen .env dosyanızda güvenli bir SECRET_KEY belirleyin."
     )
+if settings.SESSION_SECRET_KEY in ("", "dev-secret", "change-me-too"):
+    raise RuntimeError(
+        "Kritik ortam değişkeni eksik: SESSION_SECRET_KEY. Lütfen .env dosyanızda güvenli bir SESSION_SECRET_KEY belirleyin."
+    )

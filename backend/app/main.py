@@ -50,7 +50,7 @@ def gen_unique_id(route: APIRoute) -> str:
 
 app = FastAPI(
     title="ChameleonVPN API",
-    version="1.0.0",
+    version=settings.VERSION,
     docs_url="/docs" if settings.ENABLE_DOCS else None,
     redoc_url="/redoc" if settings.ENABLE_DOCS else None,
     openapi_url="/openapi.json" if settings.ENABLE_DOCS else None,

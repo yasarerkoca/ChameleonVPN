@@ -6,7 +6,7 @@ from app.deps import seed_default_roles
 def register_startup_events(app):
     @app.on_event("startup")
     async def _startup():
-        logger.info("✅ Startup event registered")
+        logger.info("✅ ChameleonVPN starting...")
         db: Session = SessionLocal()
         try:
             seed_default_roles(db)
