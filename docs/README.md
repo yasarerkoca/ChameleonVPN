@@ -46,7 +46,9 @@ Bu belge API uç noktalarını, mimari kararları ve kurulum/dağıtım adımlar
 
 ### Geliştirme Ortamı
 1. `cd backend`
-2. `.env` dosyasını gereken değişkenlerle düzenleyin ve güçlü bir `POSTGRES_PASSWORD` tanımlayın
+2. `.env` dosyasını gereken değişkenlerle düzenleyin ve güçlü bir `POSTGRES_PASSWORD` tanımlayın.
+   - Ödeme sağlayıcıları için `STRIPE_SUCCESS_URL`, `STRIPE_CANCEL_URL` ve
+     `IYZICO_CALLBACK_URL` ortam değişkenlerinin ayarlandığından emin olun.
 3. `python -m venv venv && source venv/bin/activate`
 4. `pip install -r requirements.txt`
 5. `uvicorn app.main:app --host 0.0.0.0 --port 8000`

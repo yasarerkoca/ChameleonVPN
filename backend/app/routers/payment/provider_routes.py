@@ -8,10 +8,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(
-    prefix="/payment/provider",
-    tags=["payment-provider"]
-)
+router = APIRouter(prefix="/payment/provider", tags=["payment-provider"])
 
 def _get_stripe_client():
     """Configure and return the Stripe SDK instance."""
@@ -36,26 +33,34 @@ def _get_iyzico_client():
         import iyzipay
     except ImportError as exc:
         logger.exception("iyzipay SDK not installed")
-        raise HTTPException(status_code=500, detail="iyzipay SDK not installed") from exc
+        raise HTTPException(
+            status_code=500, detail="iyzipay SDK not installed"
+        ) from exc
 
     options = iyzipay.Options()
     options.api_key = os.getenv("IYZICO_API_KEY", "")
     options.secret_key = os.getenv("IYZICO_SECRET_KEY", "")
-    options.base_url = os.getenv(
-        "IYZICO_BASE_URL", "https://sandbox-api.iyzipay.com"
-    )
+    options.base_url = os.getenv("IYZICO_BASE_URL", "https://sandbox-api.iyzipay.com")
     if not options.api_key or not options.secret_key:
         logger.error("IYZICO API keys are not configured")
         raise HTTPException(status_code=500, detail="IYZICO API keys not configured")
 
     return iyzipay, options
 
+def _get_required_env(name: str) -> str:
+    """Fetch a required environment variable or raise an error."""
+    value = os.getenv(name)
+    if not value:
+        logger.error("%s is not configured", name)
+        raise HTTPException(status_code=500, detail=f"{name} not configured")
+    return value
+
 # Örnek: Stripe ödeme başlatma endpoint'i
 @router.post("/stripe/create-session", summary="Stripe ödeme oturumu başlat")
 def create_stripe_session(
     amount: float = Body(..., embed=True),
     currency: str = Body("usd", embed=True),
-    customer_email: Optional[str] = Body(None, embed=True)
+    customer_email: Optional[str] = Body(None, embed=True),
 ):
     """
     Stripe ile yeni bir ödeme oturumu başlatır.
@@ -76,12 +81,13 @@ def create_stripe_session(
             ],
             mode="payment",
             customer_email=customer_email,
-            success_url=os.getenv("STRIPE_SUCCESS_URL", "https://example.com/success"),
-            cancel_url=os.getenv("STRIPE_CANCEL_URL", "https://example.com/cancel"),
+            success_url=_get_required_env("STRIPE_SUCCESS_URL"),
+            cancel_url=_get_required_env("STRIPE_CANCEL_URL"),
         )
         return {"status": "ok", "session_id": session.get("id")}
     except Exception as exc:
         raise HTTPException(status_code=400, detail=str(exc))
+
 
 # Örnek: iyzico ödeme başlatma endpoint'i
 @router.post("/iyzico/initialize", summary="iyzico ödeme başlat")
@@ -104,9 +110,7 @@ def initialize_iyzico_payment(
             "currency": currency,
             "basketId": "B67832",
             "paymentGroup": "PRODUCT",
-            "callbackUrl": os.getenv(
-                "IYZICO_CALLBACK_URL", "https://example.com/iyzico/callback"
-            ),
+            "callbackUrl": _get_required_env("IYZICO_CALLBACK_URL"),
             "buyer": {
                 "id": "BY789",
                 "name": "John",

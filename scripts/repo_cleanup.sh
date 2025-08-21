@@ -22,7 +22,7 @@ ensure_line() { # ensure_line FILE "pattern"
 
 # ---------- köke geç ----------
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-cd "$REPO"
+	cd "$REPO"
 echo "[i] Repo kökü: $REPO"
 
 mkdir -p archive
@@ -119,7 +119,8 @@ backend-migrate:
 	cd backend && alembic upgrade head
 
 mobile-build:
-	cd chameleon_vpn_client && flutter clean && flutter pub get && flutter build apk
+	@test -n "$BASE_URL" || (echo "BASE_URL not set. Use 'make mobile-build BASE_URL=https://api.example.com'" && exit 1)
+	cd chameleon_vpn_client && flutter clean && flutter pub get && flutter build apk --dart-define=BASE_URL=$BASE_URL
 MK
 
 # 9) .gitignore rötuşları

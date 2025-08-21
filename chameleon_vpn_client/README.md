@@ -13,14 +13,15 @@ Uygulamanın VPN tünellerini başlatabilmesi için hedef platformda
 - **Windows**: resmi sitelerinden WireGuard ve OpenVPN indirilmelidir.
 
 ## Geliştirme
-flutter run
+flutter run --dart-define=BASE_URL=http://10.0.2.2:8000
 
 ## Test
-flutter test
-flutter test integration_test
+flutter test --dart-define=BASE_URL=http://10.0.2.2:8000
+flutter test integration_test --dart-define=BASE_URL=http://10.0.2.2:8000
 
 ## Build (Android)
-flutter build apk --release
+flutter build apk --release --dart-define=BASE_URL=https://api.example.com
+
 # Çıktı: build/app/outputs/flutter-apk/app-release.apk
 
 ## Google ile Giriş

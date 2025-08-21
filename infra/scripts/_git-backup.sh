@@ -1,14 +1,18 @@
 #cd ~/ChameleonVPN/infra/scripts
-#chmod +x git-backup.sh
-#./git-backup.sh
-
+#chmod +x _git-backup.sh
+#REMOTE_URL=git@github.com:<user>/ChameleonVPN.git ./_git-backup.sh
+#./_git-backup.sh git@github.com:<user>/ChameleonVPN.git
 #!/usr/bin/env bash
 set -euo pipefail
 
 # ==== Ayarlar ====
 REPO_DIR="${REPO_DIR:-$HOME/ChameleonVPN}"
 REMOTE_NAME="${REMOTE_NAME:-github}"
-REMOTE_URL="${REMOTE_URL:-git@github.com:yasarerkoca/ChameleonVPN.git}"
+REMOTE_URL="${1:-${REMOTE_URL:-}}"
+if [[ -z "$REMOTE_URL" ]]; then
+  echo "HATA: REMOTE_URL gerekli. REMOTE_URL=git@github.com:<user>/ChameleonVPN.git $0" >&2
+  exit 1
+fi
 FPR_EXPECTED="${FPR_EXPECTED:-SHA256:wcRqXvyr5V6LP7P6i/LQKWaSgUghpuk7xFwgR+KEOtk}"
 
 trap 'echo "HATA: Satır $LINENO başarısız." >&2' ERR

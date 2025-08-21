@@ -61,5 +61,8 @@ pytest -q
 - `PASSWORD_RESET_URL`=https://example.com/auth/password/reset (şifre sıfırlama linki temeli)
 - `EMAIL_VERIFY_URL`=https://example.com/auth/verify-email (e-posta doğrulama linki temeli)
 - `STRIPE_API_KEY`=... (Stripe secret API anahtarı)
+- `STRIPE_SUCCESS_URL`=https://yourdomain.com/success (Stripe başarı dönüş URL'i)
+- `STRIPE_CANCEL_URL`=https://yourdomain.com/cancel (Stripe iptal dönüş URL'i)
+- `IYZICO_CALLBACK_URL`=https://yourdomain.com/iyzico/callback (iyzico callback URL'i)
 - `ADMIN_EMAIL`=admin@example.com (varsayılan yönetici e-posta adresi)
 - `ADMIN_PASSWORD`=super-secure (varsayılan yönetici parolası, uygulama tarafından hashlenir)

@@ -15,13 +15,13 @@
 ### Android
 1. Update version in `pubspec.yaml` (`version: x.y.z+build`).
 2. Configure release keystore in `android/key.properties`.
-3. Build signed bundle: `flutter build appbundle --release`.
-4. Optional: `make mobile-build` automates `flutter clean`, dependency fetch, and APK build.
+3. Build signed bundle: `flutter build appbundle --release --dart-define=BASE_URL=https://api.example.com`.
+4. Optional: `make mobile-build BASE_URL=https://api.example.com` automates `flutter clean`, dependency fetch, and APK build.
 
 ### iOS
 1. Update version/build in `pubspec.yaml` and Xcode.
 2. Ensure signing certificates and provisioning profiles are installed.
-3. Build release: `flutter build ipa --release` or **Product → Archive** in Xcode.
+3. Build release: `flutter build ipa --release --dart-define=BASE_URL=https://api.example.com` or **Product → Archive** in Xcode.
 4. Export the `.ipa` via Xcode Organizer.
 
 ## Store Submission

@@ -3,7 +3,7 @@
 ## Android (.apk)
 flutter clean
 flutter pub get
-flutter build apk --release
+flutter build apk --release --dart-define=BASE_URL=https://api.example.com
 # Çıktı: build/app/outputs/flutter-apk/app-release.apk
 
 ## Keystore (ilk sefer)
