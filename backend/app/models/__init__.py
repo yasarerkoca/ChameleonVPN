@@ -124,3 +124,5 @@ __all__ = [
     "UserSubscriptionHistory",
 
 ]
+
+from app.models.logs.anomaly_fraud_record import AnomalyFraudRecord

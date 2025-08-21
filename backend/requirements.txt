@@ -59,3 +59,4 @@ typing-inspection==0.4.1
 typing_extensions==4.14.1
 uvicorn==0.35.0
 asgi-lifespan==1.0.1
+Jinja2==3.1.4
