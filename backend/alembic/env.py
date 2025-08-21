@@ -1,10 +1,13 @@
 # ~/ChameleonVPN/backend/alembic/env.py
 import sys
 import os
+from logging import getLogger
 from logging.config import fileConfig
 from sqlalchemy import engine_from_config, pool, text
 from alembic import context
 import dotenv
+
+logger = getLogger(__name__)
 
 # .env dosyasını yükle
 dotenv.load_dotenv()
@@ -16,8 +19,8 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from app.config.database import Base
 from app import models  # tüm modeller __init__.py içinde toplanmalı
 
-print("---- Alembic başlıyor ----")
-print("Alembic gördüğü tablolar:", list(Base.metadata.tables.keys()))
+logger.info("---- Alembic başlıyor ----")
+logger.info("Alembic gördüğü tablolar: %s", list(Base.metadata.tables.keys()))
 
 # Alembic config
 config = context.config

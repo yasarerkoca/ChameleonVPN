@@ -13,7 +13,7 @@ import time
 import shutil
 import pytest
 import pytest_asyncio
-import aioredis
+import redis.asyncio as aioredis
 
 from asgi_lifespan import LifespanManager
 from fastapi_limiter import FastAPILimiter
@@ -191,13 +191,13 @@ def event_loop():
 async def _startup_limiter(redis_container):
     redis_url = os.getenv("REDIS_URL", "redis://localhost:6379/0")
     redis = await aioredis.from_url(redis_url, encoding="utf-8", decode_responses=True)
-    redis = await aioredis.from_url(redis_url, encoding="utf-8", decode_responses=True)
     await FastAPILimiter.init(redis)
+    await redis.close()
     yield
-
+    await FastAPILimiter.close()
 
 @pytest_asyncio.fixture()
 async def client(_startup_limiter):
     async with LifespanManager(app):
-        async with AsyncClient(base_url="http://localhost:8000") as ac:
+        async with AsyncClient(app=app, base_url="http://test") as ac:
             yield ac

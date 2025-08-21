@@ -7,9 +7,9 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 def create_test_user():
     db = SessionLocal()
     try:
-        user = db.query(User).filter(User.email == "yasarerkoca@gmail.com").first()
+        user = db.query(User).filter(User.email == "testuser@example.com").first()
         if not user:
-            password_hash = pwd_context.hash("Aa1!aa1!bb2@BB2@")
+            password_hash = pwd_context.hash("TestPass123!")
             new_user = User(
                 email="testuser@example.com",
                 password_hash=password_hash,  # DİKKAT: doğru alan!
