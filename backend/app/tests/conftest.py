@@ -2,11 +2,28 @@ import os
 from pathlib import Path
 from dotenv import dotenv_values
 
-# Load test environment before importing application modules
-env_path = Path(__file__).resolve().parents[3] / ".env.test"
-os.environ.update(dotenv_values(env_path))
+# Load environment before importing application modules
+env_path = Path(__file__).resolve().parents[2] / ".env"
+if env_path.exists():
+    os.environ.update(dotenv_values(env_path))
+
+# Ensure a local database URL for tests
+user = os.getenv("POSTGRES_USER", "postgres")
+password = os.getenv("POSTGRES_PASSWORD", "postgres")
+db_name = os.getenv("POSTGRES_DB", "postgres")
+host_port = os.getenv("POSTGRES_PORT", "5432")
+os.environ["DATABASE_URL"] = (
+    f"postgresql+psycopg2://{user}:{password}@localhost:{host_port}/{db_name}"
+)
 
 import asyncio
+import subprocess
+import time
+import shutil
+import pytest
+import pytest_asyncio
+import aioredis
+
 from asgi_lifespan import LifespanManager
 from fastapi_limiter import FastAPILimiter
 from httpx import AsyncClient

@@ -46,7 +46,7 @@ Bu belge API uç noktalarını, mimari kararları ve kurulum/dağıtım adımlar
 
 ### Geliştirme Ortamı
 1. `cd backend`
-2. `cp .env.example .env` ve gereken değişkenleri düzenleyin
+2. `.env` dosyasını gereken değişkenlerle düzenleyin
 3. `python -m venv venv && source venv/bin/activate`
 4. `pip install -r requirements.txt`
 5. `uvicorn app.main:app --host 0.0.0.0 --port 8000`

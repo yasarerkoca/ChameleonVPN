@@ -1,5 +1,7 @@
 # app/core/app_config.py
-from pydantic import BaseSettings
+
+import os
+from pydantic_settings import BaseSettings
 
 class AppConfig(BaseSettings):
     PROJECT_NAME: str = "ChameleonVPN"
@@ -8,5 +10,6 @@ class AppConfig(BaseSettings):
 
     class Config:
         env_file = ".env"
+        extra = "ignore"
 
 config = AppConfig()

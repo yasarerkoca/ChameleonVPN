@@ -1,0 +1,48 @@
+# --- Veritabanı Ayarları ---
+DATABASE_URL=postgresql+psycopg2://vpnadmin:iryna@db:5432/chameleonvpn
+
+# --- JWT / Token Ayarları ---
+SECRET_KEY=5es_cCDYBJoC3KHxJfRghdiUww1YGzayALl3U_8mx-ttPk1V0wxVhFAMG3OPG33BEwmZ30C5bTTLQ8S
+SESSION_SECRET_KEY=P0o-XUoCwk8M8cSSJ3SbO2Rgf0SczQACbWlB1dSvfBW_HMT8-dLeuHdrooI0Zh0CQGAgEDl
+
+ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=30
+REFRESH_TOKEN_EXPIRE_DAYS=7
+
+# Opsiyonel ayrı JWT konfigürasyonu
+JWT_SECRET_KEY=YgWaqfq42Q9X-m8jGn_o63KktKg5nD512ZxLHQ3s0K1LX-_-Weeo2bbpislDsGmrYf3bQ8-m2HqaUQnGUf1U1A
+JWT_ALGORITHM=HS256
+JWT_ACCESS_TOKEN_EXPIRE_MINUTES=60
+
+# --- SMTP Ayarları ---
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=yasarerkoca@gmail.com
+SMTP_PASS=kqrfrosbhffoehdi
+SMTP_FROM=ChameleonVPN <yasarerkoca@gmail.com>
+
+# --- Stripe Ayarları ---
+STRIPE_API_KEY=sk_test_XXXXXXXXXXXXXXXXXXXXXXXX
+STRIPE_WEBHOOK_SECRET=whsec_XXXXXXXXXXXXXXXXXXXXXXXX
+STRIPE_PUBLISHABLE_KEY=pk_test_XXXXXXXXXXXXXXXXXXXXXXXX
+
+# --- Google OAuth Ayarları ---
+GOOGLE_CLIENT_ID=959095868169-4l9favphgd6qhe7e1khns2te60vtvb52.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=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
+GOOGLE_REDIRECT_URI=https://chameleonvpn.app/auth/google/callback
+
+# --- Redis Ayarları ---
+REDIS_URL=redis://redis:6379
+
+# --- CORS Ayarları ---
+ALLOWED_ORIGINS='["*"]'
+
+# --- ÖNEMLİ NOTLAR ---
+# Aşağıdaki satırlar sadece açıklama/hatırlatma içindir, sistemde kullanılmaz.
+# Client ID (yedek): 959095868169-aursr059dsq573e7tol0k7j9prood5sk.apps.googleusercontent.com
+# Client secret (yedek): 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
+# GDrive yedekleme Desktop kodu... rclone config işlemleri için kullanıldı.
+# GPG anahtarın başarıyla oluşturuldu.
+# ID: BB80AE328EC0D9CCAD5C63BFBACDE1870830203D
+# Kullanıcı: ChameleonVPN Backup <yasarerkoca@gmail.com>
+# Parolanı sakla, bu olmadan yedekleri çözemeyiz.
