@@ -34,6 +34,7 @@ alembic downgrade -1
 python -m app.db.seed
 ```
 Bu komut, varsayılan roller ve yönetici hesabını ekler.
+Varsayılan yönetici bilgileri `ADMIN_EMAIL` ve `ADMIN_PASSWORD` ortam değişkenlerinden alınır.
 
 ## Test
 pytest -q
@@ -54,6 +55,11 @@ pytest -q
 - `SECRET_KEY`=change-me (JWT için zorunlu)
 - `SESSION_SECRET_KEY`=change-me-too (SessionMiddleware için zorunlu)
 - `JWT_ALGO`=HS256
-- `OAUTH_GOOGLE_CLIENT_ID`=...
-- `PASSWORD_RESET_URL`=http://localhost:8000/reset-password (şifre sıfırlama linki temeli)
+- `GOOGLE_CLIENT_ID`=... (Google OAuth için zorunlu)
+- `GOOGLE_CLIENT_SECRET`=... (Google OAuth için zorunlu)
+- `GOOGLE_REDIRECT_URI`=https://yourdomain.com/auth/google/callback (Google OAuth için zorunlu)
+- `PASSWORD_RESET_URL`=https://example.com/auth/password/reset (şifre sıfırlama linki temeli)
+- `EMAIL_VERIFY_URL`=https://example.com/auth/verify-email (e-posta doğrulama linki temeli)
 - `STRIPE_API_KEY`=... (Stripe secret API anahtarı)
+- `ADMIN_EMAIL`=admin@example.com (varsayılan yönetici e-posta adresi)
+- `ADMIN_PASSWORD`=super-secure (varsayılan yönetici parolası, uygulama tarafından hashlenir)

@@ -7,6 +7,8 @@ from datetime import timedelta
 os.environ.setdefault("DATABASE_URL", "sqlite:///test.db")
 os.environ.setdefault("SECRET_KEY", "x"*32)
 os.environ.setdefault("SESSION_SECRET_KEY", "y"*32)
+os.environ.setdefault("PASSWORD_RESET_URL", "https://example.com/reset")
+os.environ.setdefault("EMAIL_VERIFY_URL", "https://example.com/verify")
 
 # Allow `import app` from the backend package
 sys.path.append(str(Path(__file__).resolve().parents[1]))

@@ -78,14 +78,16 @@ Future<void> disconnect() async {
 
 Örnek değişkenler `backend/.env.example` dosyasında yer alır. Docker ile
 çalıştırmadan önce bu dosyayı `backend/.env` olarak kopyalayıp düzenleyin ve
-aşağıdaki ortam değişkenini tanımlayın:
-
+aşağıdaki ortam değişkenlerini tanımlayın:
 - `POSTGRES_PASSWORD` – PostgreSQL veritabanı parolası. Güçlü bir değer tanımlayın; varsayılan yoktur.
+- `EMAIL_VERIFY_URL` – E-posta doğrulama bağlantılarının temel adresi (ör. `https://example.com/auth/verify-email`).
+
 
 İsteğe bağlı değişkenler:
 
 - `UVICORN_WORKERS` – Uvicorn işçi sayısı (varsayılan `2`).
-- `PASSWORD_RESET_URL` – Şifre sıfırlama e-postalarındaki bağlantının temel adresi (varsayılan `http://localhost:8000/reset-password`).
+- `ADMIN_EMAIL` – Varsayılan yönetici hesabı için e-posta adresi.
+- `ADMIN_PASSWORD` – Varsayılan yönetici hesabı için parola (uygulama tarafından hashlenir).
 
 ## 🔐 GitHub Actions Secrets
 

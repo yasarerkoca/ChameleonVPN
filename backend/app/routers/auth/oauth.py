@@ -11,12 +11,15 @@ router = APIRouter(
     prefix="/auth/google",
     tags=["auth-google"]
 )
+# Google OAuth requires explicit configuration; fail fast if missing
+if not settings.GOOGLE_CLIENT_ID or not settings.GOOGLE_CLIENT_SECRET:
+    raise RuntimeError("GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET must be set")
 
 oauth = OAuth()
 oauth.register(
     name='google',
-    client_id=settings.GOOGLE_CLIENT_ID or "google-client-id",
-    client_secret=settings.GOOGLE_CLIENT_SECRET or "google-client-secret",
+    client_id=settings.GOOGLE_CLIENT_ID,
+    client_secret=settings.GOOGLE_CLIENT_SECRET,
     access_token_url='https://accounts.google.com/o/oauth2/token',
     authorize_url='https://accounts.google.com/o/oauth2/auth',
     api_base_url='https://www.googleapis.com/oauth2/v1/',
@@ -26,7 +29,9 @@ oauth.register(
 
 @router.get('/login', summary="Google OAuth ile giriş başlat (redirect)")
 async def login_via_google(request: Request):
-    redirect_uri = settings.GOOGLE_REDIRECT_URI or "https://chameleonvpn.app/auth/google/callback"
+    redirect_uri = settings.GOOGLE_REDIRECT_URI
+    if not redirect_uri:
+        raise RuntimeError("GOOGLE_REDIRECT_URI must be set")
     return await oauth.google.authorize_redirect(request, redirect_uri)
 
 @router.get('/callback', summary="Google OAuth callback endpoint")

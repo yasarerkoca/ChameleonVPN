@@ -55,6 +55,10 @@ class Settings(BaseSettings):
     ENABLE_DOCS: bool = True
     UVICORN_WORKERS: int = 2
 
+    # --- Varsayılan Yönetici ---
+    ADMIN_EMAIL: str
+    ADMIN_PASSWORD: str
+
     # --- SMTP (opsiyonel) ---
     SMTP_HOST: Optional[str] = None
     SMTP_PORT: int = 587
@@ -75,6 +79,10 @@ class Settings(BaseSettings):
     # --- Sentry (opsiyonel) ---
     SENTRY_DSN: Optional[str] = None
 
+    # --- URL configuration ---
+    PASSWORD_RESET_URL: str
+    EMAIL_VERIFY_URL: str
+
     # ---- Validators ----
     @field_validator("DATABASE_URL", mode="before")
     @classmethod
@@ -92,6 +100,13 @@ class Settings(BaseSettings):
         if isinstance(v, str) and len(v.strip()) >= 16:
             return v.strip()
         raise ValueError("SECRET_KEY/SESSION_SECRET_KEY must be >= 16 characters.")
+
+    @field_validator("PASSWORD_RESET_URL", "EMAIL_VERIFY_URL", mode="before")
+    @classmethod
+    def validate_base_urls(cls, v):
+        if isinstance(v, str) and v.strip():
+            return v.strip()
+        raise ValueError("PASSWORD_RESET_URL/EMAIL_VERIFY_URL must be set.")
 
     @field_validator("ALGORITHM", mode="before")
     @classmethod
@@ -116,6 +131,13 @@ class Settings(BaseSettings):
         elif isinstance(v, list):
             return ",".join(v)
         return "*"
+
+    @field_validator("ADMIN_EMAIL", "ADMIN_PASSWORD", mode="before")
+    @classmethod
+    def validate_admin_credentials(cls, v):
+        if isinstance(v, str) and v.strip():
+            return v.strip()
+        raise ValueError("ADMIN_EMAIL/ADMIN_PASSWORD must be set and non-empty.")
 
     # FastAPI CORSMiddleware için liste döndür
     def cors_origins(self) -> List[str]:

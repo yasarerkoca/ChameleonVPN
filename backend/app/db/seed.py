@@ -3,6 +3,7 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 from passlib.context import CryptContext
 from app.config.database import Base, engine, SessionLocal
+from app.config.base import settings
 from app.models.user.user import User
 import json
 
@@ -27,12 +28,13 @@ def seed() -> None:
                     "permissions": json.dumps(role["permissions"]),
                 },
             )
-        admin_email = "admin@example.com"
+        admin_email = settings.ADMIN_EMAIL
+        admin_password = settings.ADMIN_PASSWORD
         admin = db.query(User).filter(User.email == admin_email).first()
         if not admin:
             admin_user = User(
                 email=admin_email,
-                password_hash=pwd_context.hash("admin"),
+                password_hash=pwd_context.hash(admin_password),
                 full_name="Admin User",
                 is_active=True,
                 is_admin=True,

@@ -8,7 +8,7 @@ from app.services.jwt_service import (
     verify_password_reset_token,
 )
 from app.utils.email.email_core import send_email_async
-import os
+from app.config.base import settings
 
 router = APIRouter(
     prefix="/auth/password",
@@ -24,7 +24,7 @@ def forgot_password(
     user = db.query(User).filter(User.email == email).first()
     if user:
         token = create_password_reset_token(user.email)
-        reset_url = os.getenv("PASSWORD_RESET_URL", "http://localhost:8000/auth/password/reset") + f"?token={token}"
+        reset_url = settings.PASSWORD_RESET_URL + f"?token={token}"
         if background_tasks:
             background_tasks.add_task(
                 send_email_async, user.email, "Şifre Sıfırlama", reset_url

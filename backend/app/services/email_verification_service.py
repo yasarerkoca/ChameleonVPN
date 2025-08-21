@@ -4,6 +4,7 @@ from app.utils.email.email_core import send_email_async
 import logging
 import os
 from jinja2 import Environment, FileSystemLoader, select_autoescape
+from app.config.base import settings
 
 logger = logging.getLogger(__name__)
 
@@ -46,7 +47,7 @@ async def send_reset_email(to_email: str, token: str) -> None:
         to_email (str): Kullanıcının e-posta adresi
         token (str): Şifre sıfırlama için token
     """
-    base_url = os.getenv("PASSWORD_RESET_URL", "http://localhost:8000/reset-password")
+    base_url = settings.PASSWORD_RESET_URL
     reset_link = f"{base_url}?email={to_email}&token={token}"
     subject = "ChameleonVPN - Şifre Sıfırlama"
     body = (

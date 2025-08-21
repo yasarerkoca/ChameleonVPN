@@ -31,12 +31,13 @@ def init_db():
         pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
         # Create a default admin user if it does not exist
-        admin_email = "admin@example.com"
+        admin_email = settings.ADMIN_EMAIL
+        admin_password = settings.ADMIN_PASSWORD
         existing_admin = db.query(User).filter(User.email == admin_email).first()
         if not existing_admin:
             admin_user = User(
                 email=admin_email,
-                password_hash=pwd_context.hash("admin"),
+                password_hash=pwd_context.hash(admin_password),
                 full_name="Admin User",
                 is_active=True,
                 is_admin=True,

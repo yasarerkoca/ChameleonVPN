@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 import asyncio
 from sqlalchemy.orm import Session
 from fastapi_limiter.depends import RateLimiter
-import os
+from app.config.base import settings
 
 from app.models.user.user import User
 from app.schemas.user.user_base import UserCreate, UserLogin, UserOut
@@ -56,9 +56,7 @@ def register(
     db.refresh(new_user)
 
     verification_token = create_email_verification_token(new_user.email)
-    verify_url = os.getenv(
-        "EMAIL_VERIFY_URL", "http://localhost:8000/auth/verify-email"
-    ) + f"?token={verification_token}"
+    verify_url = settings.EMAIL_VERIFY_URL + f"?token={verification_token}"
     if background_tasks:
         background_tasks.add_task(
             asyncio.create_task, send_verification_email(new_user.email, verify_url)
