@@ -7,13 +7,13 @@ set -euo pipefail
 
 # ==== Ayarlar ====
 REPO_DIR="${REPO_DIR:-$HOME/ChameleonVPN}"
-REMOTE_NAME="${REMOTE_NAME:-github}"
+REMOTE_NAME="${REMOTE_NAME:-origin}"
 REMOTE_URL="${REMOTE_URL:-git@github.com:yasarerkoca/ChameleonVPN.git}"
 FPR_EXPECTED="${FPR_EXPECTED:-SHA256:wcRqXvyr5V6LP7P6i/LQKWaSgUghpuk7xFwgR+KEOtk}"
 
 trap 'echo "HATA: Satır $LINENO başarısız." >&2' ERR
 
-# ==== SSH anahtarı (fingerprint ile) ====
+# ==== SSH anahtarı seç ====
 ID_FILE="${ID_FILE:-}"
 if [[ -z "${ID_FILE}" ]]; then
   for pub in "$HOME"/.ssh/*.pub; do
@@ -26,7 +26,7 @@ if [[ -z "${ID_FILE}" ]]; then
   done
 fi
 if [[ -z "${ID_FILE:-}" ]]; then
-  echo "HATA: Fingerprint eşleşen SSH key bulunamadı. ID_FILE ile belirtin." >&2
+  echo "HATA: SSH key bulunamadı." >&2
   exit 1
 fi
 chmod 600 "$ID_FILE" || true
@@ -44,23 +44,18 @@ else
   git remote set-url "$REMOTE_NAME" "$REMOTE_URL"
 fi
 
-# ==== Senkronize et (rebase + autostash) ====
+# ==== Commit ve Push ====
 git fetch "$REMOTE_NAME" || true
-# Upstream yoksa ayarla
-if ! git rev-parse --abbrev-ref --symbolic-full-name @{u} >/dev/null 2>&1; then
-  git branch --set-upstream-to="$REMOTE_NAME"/main main || true
-fi
-# Çakışmaları minimuma indirmek için autostash'li rebase
 git pull --rebase --autostash "$REMOTE_NAME" main || true
 
-# ==== Değişiklikleri commit et ====
+# Tüm dosyaları (klasörlerle beraber) ekle
 git add -A
+
 if ! git diff --cached --quiet; then
-  git commit -m "chore(backup): $(date -Iseconds)"
+  git commit -m "backup: $(date -Iseconds)"
 fi
 
-# ==== Push ====
 git push -u "$REMOTE_NAME" main
 git push "$REMOTE_NAME" --tags
 
-echo "OK: GitHub yedek tamam."
+echo "OK: Projedeki TÜM dosyalar GitHub’a yüklendi."
