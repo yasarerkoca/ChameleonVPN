@@ -31,7 +31,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     env_file:
-      - ./backend/.env
+      - ./backend/.env  # copy from backend/.env.example
     environment:
       DATABASE_URL: postgresql+psycopg2://vpnadmin:${POSTGRES_PASSWORD:-iryna}@db:5432/chameleonvpn
       REDIS_URL: redis://redis:6379/0

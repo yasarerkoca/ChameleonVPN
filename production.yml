@@ -40,7 +40,7 @@ services:
       context: ./backend
     container_name: chameleon_backend
     env_file:
-      - ./backend/.env
+      - ./backend/.env  # copy from backend/.env.example
     volumes:
       - ./backend:/app
     command: >

@@ -52,9 +52,11 @@ Bu belge API uç noktalarını, mimari kararları ve kurulum/dağıtım adımlar
 5. `uvicorn app.main:app --host 0.0.0.0 --port 8000`
 
 ### Docker ile Çalıştırma
-1. `POSTGRES_PASSWORD` ortam değişkenini belirleyin
-2. `docker-compose up --build` komutu ile servisleri başlatın
-3. API `http://localhost:8000` adresinden ulaşılabilir
+1. `backend/.env.example` dosyasını `backend/.env` olarak kopyalayıp ayarları
+   yapın
+2. `POSTGRES_PASSWORD` ortam değişkenini belirleyin
+3. `docker-compose up --build` komutu ile servisleri başlatın
+4. API `http://localhost:8000` adresinden ulaşılabilir
 
 ### Üretim (production.yml)
 - Nginx ve Certbot içeren gelişmiş yapılandırma

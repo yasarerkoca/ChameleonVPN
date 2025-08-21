@@ -2,7 +2,7 @@
 
 from typing import Optional, List
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from pydantic import field_validator, ValidationError
+from pydantic import field_validator, ValidationError, Field, AliasChoices
 import os
 import json
 
@@ -23,9 +23,18 @@ class Settings(BaseSettings):
     DATABASE_URL: str
 
     # --- JWT / Token ---
-    SECRET_KEY: str                    # ZORUNLU (>=16)
-    ALGORITHM: str = "HS256"           # .env: JWT_ALGO ile override edilir
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
+    SECRET_KEY: str = Field(
+        validation_alias=AliasChoices("SECRET_KEY", "JWT_SECRET_KEY")
+    )  # ZORUNLU (>=16)
+    ALGORITHM: str = Field(
+        "HS256", validation_alias=AliasChoices("ALGORITHM", "JWT_ALGORITHM")
+    )  # .env: JWT_ALGO ile override edilir
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(
+        60,
+        validation_alias=AliasChoices(
+            "ACCESS_TOKEN_EXPIRE_MINUTES", "JWT_ACCESS_TOKEN_EXPIRE_MINUTES"
+        ),
+    )
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
     PASSWORD_RESET_TOKEN_EXPIRE_MINUTES: int = 60
     EMAIL_VERIFICATION_TOKEN_EXPIRE_MINUTES: int = 60 * 24
@@ -41,6 +50,8 @@ class Settings(BaseSettings):
     ALLOWED_ORIGINS: str = "*"
 
     # --- App bayrakları ---
+    PROJECT_NAME: str = "ChameleonVPN"
+    VERSION: str = "1.0.0"
     DEBUG: bool = False
     ENABLE_DOCS: bool = True
     UVICORN_WORKERS: int = 2

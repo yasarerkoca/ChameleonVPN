@@ -28,11 +28,12 @@ chameleonvpn/
 
 ## 🚀 Kısa Kurulum
 
-`deployment/` dizininden Docker ile sistemi başlatabilirsiniz:
+`deployment/` dizininden Docker ile sistemi başlatabilirsiniz. Öncelikle örnek
+ortam dosyasını kopyalayın:
 
 ```bash
-cd chameleonvpn/deployment
-docker-compose up --build
+cp backend/.env.example backend/.env
+POSTGRES_PASSWORD=<parola> docker-compose up --build
 ```
 
 Her modül kendi klasöründe ayrıntılı bir `README.md` dosyası barındırır.
@@ -74,7 +75,9 @@ Future<void> disconnect() async {
 
 ## ⚙️ Ortam Değişkenleri
 
-Uygulamayı Docker ile çalıştırmadan önce aşağıdaki ortam değişkeninin tanımlanması gerekir:
+Örnek değişkenler `backend/.env.example` dosyasında yer alır. Docker ile
+çalıştırmadan önce bu dosyayı `backend/.env` olarak kopyalayıp düzenleyin ve
+aşağıdaki ortam değişkenini tanımlayın:
 
 - `POSTGRES_PASSWORD` – PostgreSQL veritabanı parolası.
 

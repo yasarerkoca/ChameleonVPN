@@ -1,26 +1,22 @@
 from fastapi import APIRouter, Request, HTTPException, Depends, Body
 from authlib.integrations.starlette_client import OAuth
-from starlette.config import Config
 from sqlalchemy.orm import Session
 from app.crud.user.basic_crud import get_user_by_email, create_user
 from app.services.jwt_service import create_access_token
 from app.utils.db.db_utils import get_db
 from app.utils.oauth.google_oauth_utils import get_user_from_google_token
-
-import os
+from app.config.base import settings
 
 router = APIRouter(
     prefix="/auth/google",
     tags=["auth-google"]
 )
 
-config = Config('.env')
-
-oauth = OAuth(config)
+oauth = OAuth()
 oauth.register(
     name='google',
-    client_id=os.getenv("GOOGLE_CLIENT_ID", "google-client-id"),
-    client_secret=os.getenv("GOOGLE_CLIENT_SECRET", "google-client-secret"),
+    client_id=settings.GOOGLE_CLIENT_ID or "google-client-id",
+    client_secret=settings.GOOGLE_CLIENT_SECRET or "google-client-secret",
     access_token_url='https://accounts.google.com/o/oauth2/token',
     authorize_url='https://accounts.google.com/o/oauth2/auth',
     api_base_url='https://www.googleapis.com/oauth2/v1/',
@@ -30,7 +26,7 @@ oauth.register(
 
 @router.get('/login', summary="Google OAuth ile giriş başlat (redirect)")
 async def login_via_google(request: Request):
-    redirect_uri = os.getenv("GOOGLE_OAUTH_CALLBACK_URL", "https://chameleonvpn.app/auth/google/callback")
+    redirect_uri = settings.GOOGLE_REDIRECT_URI or "https://chameleonvpn.app/auth/google/callback"
     return await oauth.google.authorize_redirect(request, redirect_uri)
 
 @router.get('/callback', summary="Google OAuth callback endpoint")

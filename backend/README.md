@@ -5,6 +5,7 @@ docker compose up -d --build
 # Swagger: http://localhost:8000/docs
 
 ## Lokal Geliştirme
+cp .env.example .env
 # `.env` içindeki değişkenleri ihtiyaca göre düzenleyin
 python -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
