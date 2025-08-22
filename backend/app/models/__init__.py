@@ -44,7 +44,8 @@ from .billing import (
 )
 
 # 7) LOGS (en sonda)
-from .logs import AIServerSelectionLog, AnomalyFraudRecord
+from app.logs.ai_server_selection_log import AIServerSelectionLog
+from app.logs.anomaly_fraud_record import AnomalyFraudRecord
 
 __all__ = [
     "Base",

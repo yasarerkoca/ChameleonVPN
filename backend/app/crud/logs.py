@@ -1,7 +1,7 @@
 from typing import List, Optional, Dict, Any
 from sqlalchemy.orm import Session
 from sqlalchemy import select
-from app.models.logs.anomaly_fraud_record import AnomalyFraudRecord
+from app.logs.anomaly_fraud_record import AnomalyFraudRecord
 
 class LogCRUD:
     def create(self, db: Session, data: Dict[str, Any]) -> AnomalyFraudRecord:

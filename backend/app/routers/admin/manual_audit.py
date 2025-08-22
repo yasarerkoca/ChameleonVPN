@@ -4,7 +4,7 @@ from typing import Optional
 from pydantic import BaseModel, Field
 
 from app.models.user.user import User
-from app.models.logs.user_manual_audit import UserManualAudit
+from app.logs.user_manual_audit import UserManualAudit
 from app.utils.db.db_utils import get_db
 from app.deps import require_role
 

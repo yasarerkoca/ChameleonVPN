@@ -4,7 +4,7 @@ from typing import Optional
 from datetime import datetime, timedelta
 
 from app.utils.db.db_utils import get_db
-from app.models.logs.anomaly_fraud_record import AnomalyFraudRecord
+from app.logs.anomaly_fraud_record import AnomalyFraudRecord
 from app.models.user import User
 from app.services.anomaly_detector import run_deep_anomaly_analysis
 from app.deps import require_role

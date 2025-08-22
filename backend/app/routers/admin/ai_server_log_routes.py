@@ -4,7 +4,7 @@ from typing import List
 
 from app.utils.db.db_utils import get_db
 from app.utils.auth.auth_utils import get_current_admin
-from app.models.logs.ai_server_selection_log import AIServerSelectionLog
+from app.logs.ai_server_selection_log import AIServerSelectionLog
 from app.schemas.logs.ai_server_selection_log import AIServerSelectionLogOut
 
 router = APIRouter(

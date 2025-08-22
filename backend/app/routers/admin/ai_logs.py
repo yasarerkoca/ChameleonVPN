@@ -5,7 +5,7 @@ from typing import Optional, List
 
 from app.utils.db.db_utils import get_db
 from app.models.user import User
-from app.models.logs.anomaly_fraud_record import AnomalyFraudRecord
+from app.logs.anomaly_fraud_record import AnomalyFraudRecord
 from app.models.user.user_activity_log import UserActivityLog
 from app.models.proxy.proxy_usage_log import ProxyUsageLog
 from app.services.anomaly_detector import detect_anomalies

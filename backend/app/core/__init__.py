@@ -8,4 +8,3 @@ Temel konfigürasyon, sabitler, güvenlik ve özel hata sınıflarını içerir.
 from .app_constants import *
 from .custom_exceptions import *
 from .security_utils import *
-from .startup_events import *

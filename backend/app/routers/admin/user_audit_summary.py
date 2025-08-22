@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from app.models.user.user import User
 from app.models.user.user_notification import UserNotification
 from app.models.corporate.corporate_user_rights_history import CorporateUserRightsHistory
-from app.models.logs.user_manual_audit import UserManualAudit
+from app.logs.user_manual_audit import UserManualAudit
 from app.utils.db.db_utils import get_db
 from app.deps import require_role
 
