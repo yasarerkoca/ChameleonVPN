@@ -1,12 +1,14 @@
 # ~/ChameleonVPN/backend/app/models/__init__.py
-
 """
 Modelleri tek noktadan içe aktarma.
-Not: İlişki hatalarını önlemek için yükleme sırası önemli:
+Yükleme sırası notu:
 1) User
 2) Security (User’a back_populates edenler)
-3) Corporate (User’a back_populates edenler)
-4) Diğer domain’ler (proxy, vpn, billing, logs)
+3) Corporate
+4) Proxy
+5) VPN
+6) Billing
+7) Logs (diğer tablolara FK verdiği için en sonda)
 """
 
 from app.config.database import Base
@@ -32,7 +34,7 @@ from .user import (
 from .role import Role
 from .permission import Permission
 
-# 2) SECURITY (User.back_populates: api_keys, two_factor_tokens, limits, vb.)
+# 2) SECURITY
 from .security import (
     APIKey,
     APIKeyAccessLog,
@@ -71,6 +73,9 @@ from .billing import (
     UserBillingHistory,
     UserSubscriptionHistory,
 )
+
+# 7) LOGS (en sonda)
+from .logs import AIServerSelectionLog, AnomalyFraudRecord
 
 __all__ = [
     # Base
@@ -123,6 +128,7 @@ __all__ = [
     "UserBillingHistory",
     "UserSubscriptionHistory",
 
+    # Logs
+    "AIServerSelectionLog",
+    "AnomalyFraudRecord",
 ]
-
-from app.models.logs.anomaly_fraud_record import AnomalyFraudRecord

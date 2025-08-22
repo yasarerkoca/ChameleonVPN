@@ -1,10 +1,11 @@
 #!/bin/bash
 # Environment variables:
+#   BACKUP_DIR: Directory for backup files (defaults to $HOME/pg_backups)
 #   GPG_PASSPHRASE: Passphrase used to encrypt the backup (required)
 #   LOG_DIR: Directory for log files (defaults to $HOME)
 
 DATE=$(date +%Y-%m-%d-%H%M)
-BACKUP_DIR="/var/backups/chameleonvpn"
+BACKUP_DIR="${BACKUP_DIR:-$HOME/pg_backups}"
 DB_NAME="chameleonvpn"
 DB_USER="vpnadmin"
 BACKUP_FILE="$BACKUP_DIR/${DB_NAME}_$DATE.sql.gz"

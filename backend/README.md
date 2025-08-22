@@ -60,6 +60,7 @@ pytest -q
 - `GOOGLE_REDIRECT_URI`=https://yourdomain.com/auth/google/callback (Google OAuth için zorunlu)
 - `PASSWORD_RESET_URL`=https://example.com/auth/password/reset (şifre sıfırlama linki temeli)
 - `EMAIL_VERIFY_URL`=https://example.com/auth/verify-email (e-posta doğrulama linki temeli)
+- `ALLOWED_ORIGINS`=https://app.example.com,https://admin.example.com (CORS için izinli originler)
 - `STRIPE_API_KEY`=... (Stripe secret API anahtarı)
 - `STRIPE_SUCCESS_URL`=https://yourdomain.com/success (Stripe başarı dönüş URL'i)
 - `STRIPE_CANCEL_URL`=https://yourdomain.com/cancel (Stripe iptal dönüş URL'i)

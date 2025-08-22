@@ -159,3 +159,4 @@ chameleon_vpn_client/ios/Flutter/Flutter.podspec
 !frontend/web-user/src/lib/api.ts
 !chameleon_vpn_client/lib/
 !chameleon_vpn_client/plugins/flutter_wireguard_plugin/lib/
+infra/secrets/*

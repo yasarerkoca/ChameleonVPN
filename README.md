@@ -81,7 +81,7 @@ Future<void> disconnect() async {
 aşağıdaki ortam değişkenlerini tanımlayın:
 - `POSTGRES_PASSWORD` – PostgreSQL veritabanı parolası. Güçlü bir değer tanımlayın; varsayılan yoktur.
 - `EMAIL_VERIFY_URL` – E-posta doğrulama bağlantılarının temel adresi (ör. `https://example.com/auth/verify-email`).
-
+- `ALLOWED_ORIGINS` – CORS için izin verilen originleri virgülle ayrılmış biçimde veya JSON liste olarak belirtin.
 
 İsteğe bağlı değişkenler:
 

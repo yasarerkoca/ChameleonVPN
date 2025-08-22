@@ -46,7 +46,7 @@ class Settings(BaseSettings):
 
     # --- CORS ---
     # JSON dizesi ('["https://a.com","https://b.com"]') veya CSV ("https://a.com,https://b.com")
-    ALLOWED_ORIGINS: str = "*"
+    ALLOWED_ORIGINS: str = ""
 
     # --- App bayrakları ---
     PROJECT_NAME: str = "ChameleonVPN"
@@ -117,9 +117,13 @@ class Settings(BaseSettings):
     @field_validator("ALLOWED_ORIGINS", mode="before")
     @classmethod
     def normalize_allowed_origins(cls, v):
-        # JSON list -> CSV, list -> CSV, diğerleri aynen
+        # JSON list -> CSV, list -> CSV; değer boş ise hata
+        if v is None:
+            raise ValueError("ALLOWED_ORIGINS must be set.")
         if isinstance(v, str):
             s = v.strip()
+            if not s:
+                raise ValueError("ALLOWED_ORIGINS must be set.")
             if s.startswith("[") and s.endswith("]"):
                 try:
                     arr = json.loads(s)
@@ -127,10 +131,12 @@ class Settings(BaseSettings):
                         return ",".join(arr)
                 except Exception:
                     return s
-            return s or "*"
+            return s
         elif isinstance(v, list):
+            if not v:
+                raise ValueError("ALLOWED_ORIGINS must be set.")
             return ",".join(v)
-        return "*"
+        raise ValueError("ALLOWED_ORIGINS must be a string or list.")
 
     @field_validator("ADMIN_EMAIL", "ADMIN_PASSWORD", mode="before")
     @classmethod
@@ -142,7 +148,7 @@ class Settings(BaseSettings):
     # FastAPI CORSMiddleware için liste döndür
     def cors_origins(self) -> List[str]:
         raw = (self.ALLOWED_ORIGINS or "").strip()
-        if raw in ("", "*"):
+        if raw == "*":
             return ["*"]
         return [o.strip() for o in raw.split(",") if o.strip()]
 try:

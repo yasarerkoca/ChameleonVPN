@@ -22,6 +22,8 @@ from app.middleware.session_hijack import SessionHijackMiddleware
 from app.logs.log_middleware import LoggingMiddleware
 from app.logs.logger import logger
 from app.routers import include_routers
+from app.routers.auth.firebase_routes import router as firebase_router
+from app.routers.health import router as health_router
 from app.events.startup_events import register_startup_events
 from app.events.shutdown_events import register_shutdown_events
 
@@ -70,6 +72,8 @@ _allow_all = (len(_cors) == 1 and _cors[0] == "*")
 allow_credentials = not _allow_all
 
 # 🌐 Global Middleware
+app.include_router(health_router)
+app.include_router(firebase_router)
 app.add_middleware(LoggingMiddleware)
 app.add_middleware(MFAEnforceMiddleware)
 app.add_middleware(IPCIDRBlockMiddleware)
