@@ -9,16 +9,16 @@ from alembic import context
 # Alembic Config objesi
 config = context.config
 
-# /srv yolunu import path'e ekle (app.* içe aktarımı için)
+# /srv yolunu import path'e ekle (app.* importları için)
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if BASE_DIR not in sys.path:
     sys.path.insert(0, BASE_DIR)
 
-# Tüm modelleri yüke: target_metadata dolsun
+# Modelleri yükle ki Base.metadata dolsun (autogenerate & upgrade için şart)
 from app.config.database import Base  # noqa: E402
-from app import models  # noqa: F401,E402  (tüm paket yüklenir, tablolara kaydolur)
+from app import models  # noqa: F401,E402 - tüm model paketleri yüklenir (VPNConfig dahil)
 
-# .ini'deki url'yi ENV'den override et (Compose'dan gelen DATABASE_URL esas alınır)
+# ENV'den gelen DATABASE_URL'i .ini'deki sqlalchemy.url üzerine yaz
 db_url = os.getenv("DATABASE_URL")
 if db_url:
     config.set_main_option("sqlalchemy.url", db_url)
@@ -26,12 +26,12 @@ if db_url:
 # Alembic metadata hedefi
 target_metadata = Base.metadata
 
-# (Opsiyonel) config dosyasında loglama varsa aktif et
+# (Opsiyonel) logging config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
 def run_migrations_offline() -> None:
-    """Offline mod: sadece SQL üretir."""
+    """Offline mod: yalnızca SQL üretir."""
     url = config.get_main_option("sqlalchemy.url")
     context.configure(
         url=url,
@@ -44,7 +44,7 @@ def run_migrations_offline() -> None:
         context.run_migrations()
 
 def run_migrations_online() -> None:
-    """Online mod: DB'ye bağlanır ve uygular."""
+    """Online mod: DB bağlantısı kurup uygular."""
     connectable = engine_from_config(
         config.get_section(config.config_ini_section),
         prefix="sqlalchemy.",
