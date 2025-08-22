@@ -1,5 +1,4 @@
 # ~/ChameleonVPN/backend/app/models/vpn/vpn_server.py
-
 from sqlalchemy import Column, Integer, String, DateTime, Float, Boolean
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
@@ -17,27 +16,27 @@ class VPNServer(Base):
     city = Column(String(64), nullable=True)
 
     # AI yönlendirme metrikleri
-    load_ratio = Column(Float, nullable=True)       # %
-    last_ping = Column(Integer, nullable=True)      # ms
+    load_ratio = Column(Float, nullable=True)   # %
+    last_ping = Column(Integer, nullable=True)  # ms
     is_blacklisted = Column(Boolean, default=False)
 
-    type = Column(String(32), nullable=False)       # openvpn, wireguard, ...
+    type = Column(String(32), nullable=False)   # openvpn, wireguard, ...
     status = Column(String(16), default="active", index=True)
     capacity = Column(Integer, default=100)
 
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
-    # İlişkiler
-    vpn_configs = relationship(
+    # Tekil VPN konfigürasyonu (VPNConfig <-> VPNServer)
+    config = relationship(
         "VPNConfig",
         back_populates="server",
+        uselist=False,
         lazy="selectin",
         cascade="all, delete-orphan",
         passive_deletes=True,
     )
 
-    # Aşağıdaki overlaps argümanları; eski modellerin backref adları (vpn_logs, connection_attempts)
-    # ile bu sınıftaki adların (logs, connections) çakışma uyarılarını giderir.
+    # Eski adlarla çakışmayı bastırmak için overlaps kullanıyoruz.
     logs = relationship(
         "VPNLog",
         back_populates="vpn_server",

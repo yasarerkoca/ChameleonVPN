@@ -1,0 +1,8 @@
+#!/usr/bin/env sh
+set -euo pipefail
+
+# Alembic migrasyonları backend başlatımında çalıştırılmıyor.
+# Migrasyonlar ayrı bir adım/servis ile yönetilir.
+cd /srv
+echo "Starting backend (no alembic on startup)…"
+exec uvicorn app.main:app --host 0.0.0.0 --port 8000

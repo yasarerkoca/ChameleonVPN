@@ -3,31 +3,20 @@
 Modelleri tek noktadan içe aktarma.
 Yükleme sırası notu:
 1) User
-2) Security (User’a back_populates edenler)
+2) Security
 3) Corporate
 4) Proxy
 5) VPN
 6) Billing
-7) Logs (diğer tablolara FK verdiği için en sonda)
+7) Logs
 """
-
 from app.config.database import Base
 
 # 1) USER
 from .user import (
-    User,
-    UserSession,
-    UserSupportTicket,
-    UserActivityLog,
-    UserNotification,
-    UserReferralReward,
-    UserExternalAuth,
-    DeletedUser,
-    UserServerActivity,
-    UserSecurity,
-    UserFlagsSettings,
-    UserProfile,
-    UserRelationship,
+    User, UserSession, UserSupportTicket, UserActivityLog, UserNotification,
+    UserReferralReward, UserExternalAuth, DeletedUser, UserServerActivity,
+    UserSecurity, UserFlagsSettings, UserProfile, UserRelationship,
 )
 
 # RBAC
@@ -36,99 +25,46 @@ from .permission import Permission
 
 # 2) SECURITY
 from .security import (
-    APIKey,
-    APIKeyAccessLog,
-    BlockedIP,
-    BlockedIPRange,
-    TwoFactorToken,
-    UserBlocklist,
-    UserLimit,
+    APIKey, APIKeyAccessLog, BlockedIP, BlockedIPRange,
+    TwoFactorToken, UserBlocklist, UserLimit,
 )
 
 # 3) CORPORATE
-from .corporate import (
-    CorporateUserGroup,
-    CorporateUserRightsHistory,
-)
+from .corporate import CorporateUserGroup, CorporateUserRightsHistory
 
 # 4) PROXY
-from .proxy import (
-    ProxyIP,
-    ProxyUsageLog,
-    UserProxyAssignment,
-)
+from .proxy import ProxyIP, ProxyUsageLog, UserProxyAssignment
 
 # 5) VPN
-from .vpn import (
-    VPNServer,
-    VPNLog,
-    ConnectionAttempt,
-)
+from .vpn import VPNConfig, VPNServer, VPNLog, ConnectionAttempt  # VPNConfig eklendi
 
 # 6) BILLING
 from .billing import (
-    Plan,
-    Payment,
-    Membership,
-    UserBillingHistory,
-    UserSubscriptionHistory,
+    Plan, Payment, Membership, UserBillingHistory, UserSubscriptionHistory,
 )
 
 # 7) LOGS (en sonda)
 from .logs import AIServerSelectionLog, AnomalyFraudRecord
 
 __all__ = [
-    # Base
     "Base",
-
     # User
-    "User",
-    "UserSession",
-    "UserSupportTicket",
-    "UserActivityLog",
-    "UserNotification",
-    "UserReferralReward",
-    "UserExternalAuth",
-    "DeletedUser",
-    "UserServerActivity",
-    "UserSecurity",
-    "UserFlagsSettings",
-    "UserProfile",
-    "UserRelationship",
-    "Role",
-    "Permission",
-
+    "User", "UserSession", "UserSupportTicket", "UserActivityLog", "UserNotification",
+    "UserReferralReward", "UserExternalAuth", "DeletedUser", "UserServerActivity",
+    "UserSecurity", "UserFlagsSettings", "UserProfile", "UserRelationship",
+    "Role", "Permission",
     # Security
-    "APIKey",
-    "APIKeyAccessLog",
-    "BlockedIP",
-    "BlockedIPRange",
-    "TwoFactorToken",
-    "UserBlocklist",
-    "UserLimit",
-
+    "APIKey", "APIKeyAccessLog", "BlockedIP", "BlockedIPRange",
+    "TwoFactorToken", "UserBlocklist", "UserLimit",
     # Corporate
-    "CorporateUserGroup",
-    "CorporateUserRightsHistory",
-
+    "CorporateUserGroup", "CorporateUserRightsHistory",
     # Proxy
-    "ProxyIP",
-    "ProxyUsageLog",
-    "UserProxyAssignment",
-
+    "ProxyIP", "ProxyUsageLog", "UserProxyAssignment",
     # VPN
-    "VPNServer",
-    "VPNLog",
-    "ConnectionAttempt",
-
+    "VPNConfig",  # ← buradaki eksik virgül düzeltildi
+    "VPNServer", "VPNLog", "ConnectionAttempt",
     # Billing
-    "Plan",
-    "Payment",
-    "Membership",
-    "UserBillingHistory",
-    "UserSubscriptionHistory",
-
+    "Plan", "Payment", "Membership", "UserBillingHistory", "UserSubscriptionHistory",
     # Logs
-    "AIServerSelectionLog",
-    "AnomalyFraudRecord",
+    "AIServerSelectionLog", "AnomalyFraudRecord",
 ]

@@ -4,7 +4,8 @@ services:
     environment:
       POSTGRES_DB: chameleonvpn
       POSTGRES_USER: vpnadmin
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      # env yoksa yerelde uyarı vermesin diye varsayılan
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-iryna}
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -26,25 +27,49 @@ services:
       retries: 10
     restart: unless-stopped
 
+  # --- DB şemasını otomatik güncelleyen "job" (yalnızca upgrade) ---
+  migrate:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    entrypoint: ["sh","-lc","cd /srv && alembic -c alembic.ini upgrade head && alembic -c alembic.ini current -v"]
+    env_file:
+      - ./backend/.env
+    environment:
+      DATABASE_URL: postgresql+psycopg2://vpnadmin:${POSTGRES_PASSWORD:-iryna}@db:5432/chameleonvpn
+    volumes:
+      - ./backend/alembic:/srv/alembic:ro
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
+    entrypoint: ["/entrypoint.sh"]
     env_file:
-      - ./backend/.env  # copy from backend/.env.example
+      - ./backend/.env
     environment:
-      DATABASE_URL: postgresql+psycopg2://vpnadmin:${POSTGRES_PASSWORD}@db:5432/chameleonvpn
+      # compose interpolasyonu için aynı fallback
+      DATABASE_URL: postgresql+psycopg2://vpnadmin:${POSTGRES_PASSWORD:-iryna}@db:5432/chameleonvpn
       REDIS_URL: redis://redis:6379/0
-      ALLOWED_ORIGINS: '["http://localhost","http://127.0.0.1"]'
+      # Domainleri de ekledik (CORS)
+      ALLOWED_ORIGINS: '["http://localhost","http://127.0.0.1","https://chameleonvpn.app","https://www.chameleonvpn.app"]'
       FIREBASE_PROJECT_ID: chameleonvpn-aba53
       GOOGLE_APPLICATION_CREDENTIALS: /app/secrets/serviceAccount.json
     volumes:
       - ./infra/secrets:/app/secrets:ro
+      # migrasyon dosyalarını sadece OKU (uygulama yazmaz)
+      - ./backend/alembic:/srv/alembic:ro
     depends_on:
       db:
         condition: service_healthy
       redis:
         condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
     healthcheck:
       test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8000/healthz"]
       interval: 10s
@@ -60,11 +85,48 @@ services:
       dockerfile: Dockerfile.nginx
     ports:
       - "80:80"
+      - "443:443"
     depends_on:
       backend:
         condition: service_healthy
+    # TLS için gerekli dizinler
+    volumes:
+      - ./infra/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - certbot-etc:/etc/letsencrypt
+      - certbot-www:/var/www/certbot
     restart: unless-stopped
+
+  # Sertifika yenilemeyi otomatik yapan servis
+  certbot:
+    image: certbot/certbot:latest
+    volumes:
+      - certbot-etc:/etc/letsencrypt
+      - certbot-www:/var/www/certbot
+    entrypoint: sh
+    command: -c 'trap exit TERM; while :; do certbot renew --webroot -w /var/www/certbot --quiet; sleep 12h; done'
+    restart: unless-stopped
+
+  # --- Opsiyonel: model değişince autogenerate + upgrade yapmak için araç (EL İLE ÇALIŞTIR) ---
+  migrator:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    entrypoint: ["sh","-lc","cd /srv && alembic -c alembic.ini revision --autogenerate -m \"${MSG:-autogen}\" && alembic -c alembic.ini upgrade head && alembic -c alembic.ini current -v"]
+    env_file:
+      - ./backend/.env
+    environment:
+      DATABASE_URL: postgresql+psycopg2://vpnadmin:${POSTGRES_PASSWORD:-iryna}@db:5432/chameleonvpn
+    volumes:
+      - ./infra/secrets:/app/secrets:ro
+      # DİKKAT: autogenerate dosya yazacağı için RW
+      - ./backend/alembic:/srv/alembic
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
 
 volumes:
   pgdata:
   redisdata:
+  certbot-etc:
+  certbot-www:

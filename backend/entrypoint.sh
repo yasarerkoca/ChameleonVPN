@@ -1,15 +1,20 @@
 #!/usr/bin/env sh
-set -e
+set -euo pipefail
+cd /srv
 
-echo "==> Alembic upgrade (retry)..."
-EC=1
-for i in $(seq 1 30); do
-  if alembic -c /srv/alembic.ini upgrade head; then
-    EC=0; break
-  fi
-  echo "alembic retry $i/30"; sleep 3
-done
-[ "$EC" -ne 0 ] && echo "Alembic failed" && exit "$EC"
+echo "Starting backend (no alembic on startup)…"
 
-echo "==> Starting uvicorn..."
-exec uvicorn app.main:app --host 0.0.0.0 --port 8000
+# 1) Uygulama import edilebiliyor mu? (stack trace göster)
+python - <<'PY'
+import traceback, sys
+try:
+    import app.main  # sadece import; Uvicorn'u aşağıda başlatacağız
+    print("import_ok")
+except Exception:
+    print("IMPORT_ERROR ↓↓↓", file=sys.stderr)
+    traceback.print_exc()
+    sys.exit(1)
+PY
+
+# 2) Uvicorn'u başlat
+exec uvicorn app.main:app --host 0.0.0.0 --port 8000 --log-level info
