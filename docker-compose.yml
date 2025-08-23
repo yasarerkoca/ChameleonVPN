@@ -12,6 +12,9 @@ services:
       interval: 10s
       timeout: 5s
       retries: 10
+    # Sadece makinenin localhost’una yayınla:
+    ports:
+      - "127.0.0.1:5432:5432"
     restart: unless-stopped
 
   redis:
@@ -26,7 +29,6 @@ services:
       retries: 10
     restart: unless-stopped
 
-  # Şemayı head'e taşıyan tek-seferlik job
   migrate:
     build:
       context: ./backend
@@ -49,7 +51,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    entrypoint: ["/entrypoint.sh"]   # alembic migrate job ayrı
+    entrypoint: ["/entrypoint.sh"]
     env_file:
       - ./backend/.env
     environment:

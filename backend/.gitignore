@@ -16,7 +16,8 @@ nohup.out
 uvicorn.log
 
 # Alembic
-alembic/versions/
+alembic/versions/__pycache__/
+alembic/versions/*.pyc
 
 # VSCode
 .vscode/
