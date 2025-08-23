@@ -7,14 +7,18 @@ from typing import Optional, List
 from fastapi import Request
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
+from sqlalchemy.exc import SQLAlchemyError
+import logging
 
 from .common import should_bypass
+
+logger = logging.getLogger(__name__)
 
 # DB yardımcıları isteğe bağlı import — yoksa middleware no-op davranır
 try:
     from app.utils.db.db_utils import get_db  # generator (yield) döner
     from app.models.security.blocked_ip_range import BlockedIPRange
-except Exception:
+except ImportError:
     get_db = None           # type: ignore
     BlockedIPRange = None   # type: ignore
 
@@ -39,8 +43,9 @@ class IPCIDRBlockMiddleware(BaseHTTPMiddleware):
         client_ip = request.client.host if request.client else "0.0.0.0"
         try:
             ip_obj = ipaddress.ip_address(client_ip)
-        except Exception:
-            # Şüpheli IP formatı — engellemeyelim
+
+        except ValueError:
+            logger.warning("Invalid client IP format: %s", client_ip)
             return await call_next(request)
 
         # Cache süresi dolduysa CIDR'ları DB'den çek
@@ -55,22 +60,23 @@ class IPCIDRBlockMiddleware(BaseHTTPMiddleware):
                 finally:
                     try:
                         gen.close()  # type: ignore[attr-defined]
-                    except Exception:
-                        pass
+                    except SQLAlchemyError as exc:
+                        logger.warning("Failed to close DB session: %s", exc)
 
                 networks = []
                 for c in cidrs:
                     try:
                         networks.append(ipaddress.ip_network(c, strict=False))
-                    except Exception:
+                    except ValueError:
                         # Hatalı CIDR kaydını atla
+                        logger.warning("Invalid CIDR in database: %s", c)
                         continue
 
                 _CACHE["networks"] = networks
                 _CACHE["ts"] = now
-            except Exception:
-                # DB/parse hatasında trafiği kesmeyelim
-                return await call_next(request)
+            except SQLAlchemyError as exc:
+                logger.error("Failed to load blocked CIDRs: %s", exc)
+                return JSONResponse(status_code=503, content={"detail": "Service temporarily unavailable"})
 
         # Üye olduğu bir ağ varsa engelle
         for net in _CACHE["networks"]:
@@ -80,7 +86,8 @@ class IPCIDRBlockMiddleware(BaseHTTPMiddleware):
                         status_code=403,
                         content={"detail": "Erişiminiz IP aralığı nedeniyle engellendi."},
                     )
-            except Exception:
+            except ValueError:
+                logger.warning("Invalid network configuration: %s", net)
                 continue
 
         return await call_next(request)
@@ -89,3 +96,4 @@ class IPCIDRBlockMiddleware(BaseHTTPMiddleware):
 # Eski kullanım için fonksiyon sarmalayıcı (opsiyonel)
 async def ip_cidr_block_middleware(request, call_next):
     return await IPCIDRBlockMiddleware(None).dispatch(request, call_next)
+

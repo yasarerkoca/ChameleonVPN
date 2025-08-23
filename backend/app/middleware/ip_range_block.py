@@ -1,11 +1,16 @@
 # ~/ChameleonVPN/backend/app/middleware/ip_range_block.py
 
+import ipaddress
+import logging
+
 from fastapi import Request
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
+
 from app.utils.db.db_utils import get_db
 from app.crud.security.blocked_ip_range_crud import get_all_blocked_ip_ranges
-import ipaddress
+
+logger = logging.getLogger(__name__)
 
 class IPRangeBlockMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
@@ -15,7 +20,11 @@ class IPRangeBlockMiddleware(BaseHTTPMiddleware):
         for blocked in blocked_ranges:
             try:
                 if ipaddress.ip_address(ip) in ipaddress.ip_network(blocked.cidr):
-                    return JSONResponse(status_code=403, content={"detail": "IP adresiniz bloklu bir aralıkta. Erişim engellendi."})
-            except Exception:
+                    return JSONResponse(
+                        status_code=403,
+                        content={"detail": "IP adresiniz bloklu bir aralıkta. Erişim engellendi."},
+                    )
+            except ValueError as exc:
+                logger.warning("Invalid IP/CIDR %s: %s", blocked.cidr, exc)
                 continue
         return await call_next(request)

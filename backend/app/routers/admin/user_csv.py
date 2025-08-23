@@ -4,9 +4,13 @@ from datetime import datetime
 from fastapi import APIRouter, Depends, File, UploadFile, HTTPException
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import SQLAlchemyError
+import logging
 from app.models.user.user import User
 from app.utils.db.db_utils import get_db
 from app.deps import require_role
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(
     prefix="/admin/user-csv",
@@ -33,21 +37,7 @@ def export_users_csv(db: Session = Depends(get_db), _: str = Depends(require_rol
             user.is_active,
             user.is_admin,
             user.created_at,
-            getattr(user, "corporate_group_id", ""),
-            getattr(user, "proxy_quota_gb", 0),
-            getattr(user, "active_proxy_count", 0)
-        ])
-    output.seek(0)
-    return StreamingResponse(
-        iter([output.getvalue()]),
-        media_type="text/csv",
-        headers={"Content-Disposition": "attachment; filename=users.csv"}
-    )
-
-@router.post("/import", summary="CSV ile toplu kullanıcı ekle (import)")
-def import_users_csv(
-    file: UploadFile = File(...),
-    db: Session = Depends(get_db),
+@@ -51,27 +55,29 @@ def import_users_csv(
     _: str = Depends(require_role("admin"))
 ):
     try:
@@ -73,5 +63,8 @@ def import_users_csv(
             imported.append(row["email"])
         db.commit()
         return {"msg": f"{len(imported)} kullanıcı import edildi.", "imported": imported}
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Import failed: {e}")
+    except SQLAlchemyError as exc:
+        db.rollback()
+        logger.error("User import failed: %s", exc)
+        raise HTTPException(status_code=400, detail=f"Import failed: {exc}")
+

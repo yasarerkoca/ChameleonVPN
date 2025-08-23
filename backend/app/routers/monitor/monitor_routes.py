@@ -1,7 +1,11 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from sqlalchemy import text
+from sqlalchemy.exc import SQLAlchemyError
+import logging
 from app.utils.db.db_utils import get_db
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(
     prefix="/monitor",
@@ -23,5 +27,6 @@ def db_check(db: Session = Depends(get_db)):
     try:
         db.execute(text("SELECT 1"))
         return {"status": "ok"}
-    except Exception as e:
-        return {"status": "db_error", "detail": str(e)}
+    except SQLAlchemyError as exc:
+        logger.error("Database health check failed: %s", exc)
+        return {"status": "db_error", "detail": str(exc)}

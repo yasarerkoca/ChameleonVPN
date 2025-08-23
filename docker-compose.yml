@@ -4,7 +4,7 @@ services:
     environment:
       POSTGRES_DB: chameleonvpn
       POSTGRES_USER: vpnadmin
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-iryna}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -38,7 +38,7 @@ services:
     env_file:
       - ./backend/.env
     environment:
-      DATABASE_URL: postgresql+psycopg2://vpnadmin:${POSTGRES_PASSWORD:-iryna}@db:5432/chameleonvpn
+      DATABASE_URL: postgresql+psycopg2://vpnadmin:${POSTGRES_PASSWORD}@db:5432/chameleonvpn
     volumes:
       - ./backend/alembic:/srv/alembic:ro
       - ./infra/secrets:/app/secrets:ro
@@ -55,7 +55,7 @@ services:
     env_file:
       - ./backend/.env
     environment:
-      DATABASE_URL: postgresql+psycopg2://vpnadmin:${POSTGRES_PASSWORD:-iryna}@db:5432/chameleonvpn
+      DATABASE_URL: postgresql+psycopg2://vpnadmin:${POSTGRES_PASSWORD}@db:5432/chameleonvpn
       REDIS_URL: redis://redis:6379/0
       ALLOWED_ORIGINS: '["http://localhost","http://127.0.0.1","https://chameleonvpn.app","https://www.chameleonvpn.app"]'
       FIREBASE_PROJECT_ID: chameleonvpn-aba53

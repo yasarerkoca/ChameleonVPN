@@ -27,7 +27,7 @@ docker-compose.yml         # Geliştirme orkestrasyonu
 
 Önkoşullar: **Docker** ve **Docker Compose**
 
-1) Ortam dosyasını oluştur:
+1) Ortam dosyalarsını oluştur:
 ```bash
 cp backend/.env.example backend/.env
 # backend/.env içindeki kritik değişkenleri doldur:
@@ -35,6 +35,8 @@ cp backend/.env.example backend/.env
 # - ALLOWED_ORIGINS=...
 # - EMAIL_VERIFY_URL=...
 # (Diğerleri: backend/.env.example içinde)
+# Proje kökünde güçlü bir POSTGRES_PASSWORD tanımlayın
+echo "POSTGRES_PASSWORD=ChameleonVPN_P@ssw0rd!2024" > .env
 ```
 
 2) Veritabanı ve Redis’i başlat:

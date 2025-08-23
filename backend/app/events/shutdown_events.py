@@ -1,4 +1,5 @@
 from fastapi_limiter import FastAPILimiter
+from sqlalchemy.exc import SQLAlchemyError
 from app.config.database import SessionLocal, engine
 from app.logs.logger import logger
 
@@ -19,7 +20,7 @@ def register_shutdown_events(app):
             SessionLocal.close_all()
             engine.dispose()
             logger.info("✅ Database connections closed")
-        except Exception as e:
+        except SQLAlchemyError as e:
             logger.error(f"❌ Failed to close database connections: {e}")
 
         logger.info("🧹 Cleanup completed")

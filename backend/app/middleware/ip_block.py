@@ -2,21 +2,25 @@
 from fastapi import HTTPException
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
+from sqlalchemy.exc import SQLAlchemyError
+import logging
 from .common import should_bypass
+
+logger = logging.getLogger(__name__)
 
 # Opsiyonel DB erişimi (varsa) – yoksa no-op
 try:
     from app.crud.security.blocked_ip_crud import is_ip_blocked  # type: ignore
-except Exception:
+except ImportError:
     is_ip_blocked = None  # type: ignore
 
 # SessionLocal: modern yol + legacy fallback
 try:
     from app.config.database import SessionLocal  # type: ignore
-except Exception:  # pragma: no cover
+except ImportError:  # pragma: no cover
     try:
         from app.config.database import SessionLocal  # type: ignore
-    except Exception:
+    except ImportError:
         SessionLocal = None  # type: ignore
 
 
@@ -42,15 +46,15 @@ class IPBlockMiddleware(BaseHTTPMiddleware):
                     raise HTTPException(status_code=403, detail="IP blocked")
             except HTTPException:
                 raise
-
-            except Exception:
-                pass
+            except SQLAlchemyError as exc:
+                logger.error("IP block check failed: %s", exc)
+                raise HTTPException(status_code=503, detail="Service temporarily unavailable")
             finally:
                 if db:
                     try:
                         db.close()
-                    except Exception:
-                        pass
+                    except SQLAlchemyError as exc:
+                        logger.warning("Failed to close DB session: %s", exc)
 
 
         return await call_next(request)
@@ -58,3 +62,4 @@ class IPBlockMiddleware(BaseHTTPMiddleware):
 
 async def ip_block_middleware(request, call_next):
     return await IPBlockMiddleware(None).dispatch(request, call_next)
+

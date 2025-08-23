@@ -1,8 +1,12 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import SQLAlchemyError
+import logging
 from app.utils.db.db_utils import get_db
 from app.models.user.user import User
 from app.deps import require_role
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(
     prefix="/admin/status-management",
@@ -19,6 +23,8 @@ def system_health(
         db.execute("SELECT 1")
         db_status = "ok"
     except Exception:
+    except SQLAlchemyError as exc:
+        logger.error("Database health check failed: %s", exc)
         db_status = "unreachable"
 
     # Buraya başka sağlık kontrolleri (cache, servis, disk vs.) de eklenebilir.
@@ -27,3 +33,4 @@ def system_health(
         "database": db_status,
         "version": "1.0.0"
     }
+
