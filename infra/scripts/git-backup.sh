@@ -9,7 +9,7 @@ set -euo pipefail
 REPO_DIR="${REPO_DIR:-$HOME/ChameleonVPN}"
 REMOTE_NAME="${REMOTE_NAME:-origin}"
 REMOTE_URL="${REMOTE_URL:-git@github.com:yasarerkoca/ChameleonVPN.git}"
-FPR_EXPECTED="${FPR_EXPECTED:-SHA256:wcRqXvyr5V6LP7P6i/LQKWaSgUghpuk7xFwgR+KEOtk}"
+FPR_EXPECTED="${FPR_EXPECTED:-SHA256:HPt96mf80fmyLsT8byI0E6jBu3m79qs0f8/cKYCVvB8}"
 
 trap 'echo "HATA: Satır $LINENO başarısız." >&2' ERR
 
