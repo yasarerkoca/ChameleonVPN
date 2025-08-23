@@ -46,9 +46,9 @@ from .billing import (
 )
 
 # 7) LOGS (ORM MODELLER EN SONA)
-# DİKKAT: ORM modelleri logs paketinden DEĞİL, models/logs paketinden alınır.
-from .logs.ai_server_selection_log import AIServerSelectionLog
-from .logs.anomaly_fraud_record import AnomalyFraudRecord
+# DİKKAT: ORM modelleri logs paketinden alınır.
+from app.logs.ai_server_selection_log import AIServerSelectionLog
+from app.logs.anomaly_fraud_record import AnomalyFraudRecord
 
 __all__ = [
     "Base",

@@ -8,3 +8,4 @@ from .security import *
 from .user import *
 from .vpn import *
 from .billing import *
+from .logs import *
