@@ -39,6 +39,7 @@ from .proxy import ProxyIP, ProxyUsageLog, UserProxyAssignment
 
 # 5) VPN
 from .vpn import VPNConfig, VPNServer, VPNLog, ConnectionAttempt
+from .peer import Peer  # ✅ Peer modeli eklendi
 
 # 6) BILLING
 from .billing import (
@@ -46,7 +47,6 @@ from .billing import (
 )
 
 # 7) LOGS (ORM MODELLER EN SONA)
-# DİKKAT: ORM modelleri logs paketinden alınır.
 from app.logs.ai_server_selection_log import AIServerSelectionLog
 from app.logs.anomaly_fraud_record import AnomalyFraudRecord
 
@@ -66,7 +66,7 @@ __all__ = [
     # Proxy
     "ProxyIP", "ProxyUsageLog", "UserProxyAssignment",
     # VPN
-    "VPNConfig", "VPNServer", "VPNLog", "ConnectionAttempt",
+    "VPNConfig", "VPNServer", "VPNLog", "ConnectionAttempt", "Peer",
     # Billing
     "Plan", "Payment", "Membership", "UserBillingHistory", "UserSubscriptionHistory",
     # Logs

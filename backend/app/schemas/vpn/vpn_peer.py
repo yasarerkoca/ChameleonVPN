@@ -12,8 +12,8 @@ class VPNPeerOut(BaseModel):
     ip_address: str
     public_key: str
 
-    class Config:
-        orm_mode = True
+class Config:
+    from_attributes = True
 
 
 class VPNPeerWithConfig(BaseModel):

@@ -1,6 +1,6 @@
 # ~/ChameleonVPN/backend/app/main.py
 from fastapi import FastAPI, Depends, Request, HTTPException
-from fastapi.responses import JSONResponse   # FileResponse KALDIRILDI
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 from fastapi.routing import APIRoute
@@ -26,6 +26,11 @@ from app.routers.auth.firebase_routes import router as firebase_router
 from app.routers.health import router as health_router
 from app.events.startup_events import register_startup_events
 from app.events.shutdown_events import register_shutdown_events
+
+# ✅ Yeni eklenen router importları
+from app.routers.auth_email import router as auth_email_router
+from app.routers.auth_2fa import router as auth_2fa_router
+from app.routers.vpn.vpn_peers import router as vpn_peers_router
 
 import redis.asyncio as aioredis
 
@@ -66,7 +71,7 @@ async def healthz():
 # Prometheus /metrics
 Instrumentator().instrument(app).expose(app)
 
-# CORS (Settings üzerinden normalize liste)
+# CORS
 _cors = settings.cors_origins()
 _allow_all = (len(_cors) == 1 and _cors[0] == "*")
 allow_credentials = not _allow_all
@@ -74,6 +79,11 @@ allow_credentials = not _allow_all
 # 🌐 Global Middleware
 app.include_router(health_router)
 app.include_router(firebase_router)
+# ✅ Yeni auth/vpn routerlar burada include ediliyor
+app.include_router(auth_email_router)
+app.include_router(auth_2fa_router)
+app.include_router(vpn_peers_router)
+
 app.add_middleware(LoggingMiddleware)
 app.add_middleware(MFAEnforceMiddleware)
 app.add_middleware(IPCIDRBlockMiddleware)
@@ -94,7 +104,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Fonksiyonel middleware (GeoIP engelleme)
+# Fonksiyonel middleware
 app.middleware("http")(geoip_block_middleware)
 
 logger.info("🚀 ChameleonVPN backend initialized")
@@ -119,22 +129,21 @@ async def all_exception_handler(request: Request, exc: Exception):
         content={"detail": "Internal server error. Lütfen sistem yöneticisine başvurun."},
     )
 
-# 🔗 Router'lar
+# 🔗 Router'lar (diğer modüller)
 include_routers(app)
 
-# 📦 APK İndirme Endpoint'i — KALDIRILDI, 410 GONE ile korunuyor
+# 📦 APK endpoint — kaldırıldı
 @app.get("/download/apk", tags=["Utility"])
 def download_apk_gone():
-    # Resmi mağazalar dışı dağıtım YASAK
     raise HTTPException(status_code=410, detail="Use official store links.")
 
-# 🧪 Rate Limit Test Endpoint'i
+# 🧪 Rate Limit Test
 @app.get("/test-limit", dependencies=[Depends(RateLimiter(times=5, seconds=60))], tags=["Utility"])
 async def test_limit():
     logger.info("✅ Rate limit test çağrıldı")
     return {"msg": "Rate limit testi başarılı!"}
 
-# 🌱 Sağlık Kontrolü
+# 🌱 Root endpoint
 @app.get("/", tags=["Root"])
 def root():
     logger.info("🏠 Root endpoint çağrıldı")

@@ -16,7 +16,7 @@ services:
       timeout: 5s
       retries: 10
     ports:
-      - "127.0.0.1:5432:5432"   # sadece localhost erişebilsin
+      - "127.0.0.1:5432:5432"
     restart: unless-stopped
 
   # --- Redis ---
@@ -37,14 +37,15 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    working_dir: /srv
-    entrypoint: ["bash","-lc","alembic -c alembic.ini upgrade head && alembic -c alembic.ini current -v"]
+    working_dir: /app
+    entrypoint: ["alembic", "-c", "alembic.ini"]
+    command: ["upgrade", "head"]
     env_file:
       - ./backend/.env
     environment:
       DATABASE_URL: postgresql+psycopg2://vpnadmin:${POSTGRES_PASSWORD}@db:5432/chameleonvpn
     volumes:
-      - ./backend/alembic:/srv/alembic:ro
+      - ./backend:/app
       - ./infra/secrets:/app/secrets:ro
     depends_on:
       db:
@@ -56,6 +57,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
+    working_dir: /app
     entrypoint: ["/entrypoint.sh"]
     env_file:
       - ./backend/.env
@@ -66,8 +68,8 @@ services:
       FIREBASE_PROJECT_ID: chameleonvpn-aba53
       GOOGLE_APPLICATION_CREDENTIALS: /app/secrets/serviceAccount.json
     volumes:
+      - ./backend:/app
       - ./infra/secrets:/app/secrets:ro
-      - ./backend/alembic:/srv/alembic:ro
     depends_on:
       db:
         condition: service_healthy
@@ -94,13 +96,9 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      # Admin panel build dosyaları
       - ./frontend/web-admin/dist:/usr/share/nginx/html:ro
-      # Ana domain için index.html (landing page)
       - ./frontend/root:/usr/share/nginx/root:ro
-      # Özel nginx konfigürasyonu
       - ./deploy/nginx/chameleon.conf:/etc/nginx/conf.d/default.conf:ro
-      # Sertifikalar ve ACME challenge
       - certbot-etc:/etc/letsencrypt
       - certbot-www:/var/www/certbot
     working_dir: /usr/share/nginx
@@ -117,7 +115,6 @@ services:
     volumes:
       - certbot-etc:/etc/letsencrypt
       - certbot-www:/var/www/certbot
-      # Hook script (sertifika yenilendiğinde nginx reload)
       - ./deploy/certbot/renew_hook.sh:/renew_hook.sh:ro
       - /var/run/docker.sock:/var/run/docker.sock
     entrypoint: sh
