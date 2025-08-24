@@ -1,4 +1,7 @@
+version: "3.9"
+
 services:
+  # --- PostgreSQL veritabanı ---
   db:
     image: postgres:14
     environment:
@@ -12,11 +15,11 @@ services:
       interval: 10s
       timeout: 5s
       retries: 10
-    # Sadece makinenin localhost’una yayınla:
     ports:
-      - "127.0.0.1:5432:5432"
+      - "127.0.0.1:5432:5432"   # sadece localhost erişebilsin
     restart: unless-stopped
 
+  # --- Redis ---
   redis:
     image: redis:7-alpine
     command: ["redis-server", "--appendonly", "yes"]
@@ -29,6 +32,7 @@ services:
       retries: 10
     restart: unless-stopped
 
+  # --- Alembic migrate (tek seferlik) ---
   migrate:
     build:
       context: ./backend
@@ -47,6 +51,7 @@ services:
         condition: service_healthy
     restart: "no"
 
+  # --- Backend (FastAPI) ---
   backend:
     build:
       context: ./backend
@@ -79,10 +84,9 @@ services:
       - "8000:8000"
     restart: unless-stopped
 
+  # --- Web (Nginx reverse proxy + static hosting) ---
   web:
-    build:
-      context: .
-      dockerfile: Dockerfile.nginx
+    image: nginx:alpine
     depends_on:
       backend:
         condition: service_healthy
@@ -90,11 +94,16 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - ./infra/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./infra/nginx/certs:/etc/nginx/certs:ro
+      # Admin panel build dosyaları
+      - ./frontend/web-admin/dist:/usr/share/nginx/html:ro
+      # Ana domain için index.html (landing page)
+      - ./frontend/root:/usr/share/nginx/root:ro
+      # Özel nginx konfigürasyonu
+      - ./deploy/nginx/chameleon.conf:/etc/nginx/conf.d/default.conf:ro
+      # Sertifikalar ve ACME challenge
       - certbot-etc:/etc/letsencrypt
       - certbot-www:/var/www/certbot
-      - ./frontend/web-admin/build:/usr/share/nginx/html:ro
+    working_dir: /usr/share/nginx
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://127.0.0.1/healthz || exit 1"]
       interval: 15s
@@ -102,15 +111,20 @@ services:
       retries: 10
     restart: unless-stopped
 
+  # --- Certbot (Let's Encrypt otomatik yenileme) ---
   certbot:
     image: certbot/certbot:latest
     volumes:
       - certbot-etc:/etc/letsencrypt
       - certbot-www:/var/www/certbot
+      # Hook script (sertifika yenilendiğinde nginx reload)
+      - ./deploy/certbot/renew_hook.sh:/renew_hook.sh:ro
+      - /var/run/docker.sock:/var/run/docker.sock
     entrypoint: sh
-    command: -c 'trap exit TERM; while :; do certbot renew --webroot -w /var/www/certbot --quiet; sleep 12h; done'
+    command: -c 'trap exit TERM; while :; do certbot renew --webroot -w /var/www/certbot --quiet --deploy-hook "/renew_hook.sh"; sleep 12h; done'
     restart: unless-stopped
 
+# --- Volume tanımları ---
 volumes:
   pgdata:
   redisdata:
