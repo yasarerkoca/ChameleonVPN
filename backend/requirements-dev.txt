@@ -1,0 +1,4 @@
+pytest-asyncio==0.24.0
+asgi-lifespan==1.0.1
+typing-inspection==0.4.1
+numpy==2.2.6

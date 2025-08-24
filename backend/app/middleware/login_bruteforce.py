@@ -50,7 +50,20 @@ def _memory_guard(ip: str) -> None:
     bucket = int(time.time()) // WINDOW_SECONDS
     key = f"{ip}:{bucket}"
     cnt = _ATTEMPT_CACHE.get(key, 0)
-@@ -63,65 +67,67 @@ class LoginBruteForceMiddleware(BaseHTTPMiddleware):
+    if cnt >= ATTEMPT_LIMIT:
+        raise HTTPException(status_code=429, detail="Çok fazla başarısız giriş denemesi")
+    _ATTEMPT_CACHE[key] = cnt + 1
+
+
+class LoginBruteForceMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        # Bypass kontrolü
+        if should_bypass(request) or request.url.path not in LOGIN_PATHS:
+            return await call_next(request)
+
+        ip = _client_ip(request)
+        db = None
+
         # DB katmanı mevcutsa onu kullan
         db_guard_available = all(
             [
@@ -99,10 +112,11 @@ def _memory_guard(ip: str) -> None:
             _memory_guard(ip)
             return await call_next(request)
 
-        except HTTPException:
         except SQLAlchemyError as exc:
             logger.error("Login brute force middleware DB error: %s", exc)
             raise HTTPException(status_code=503, detail="Service temporarily unavailable")
+        except HTTPException:
+            raise
         except Exception as exc:
             logger.error("Login brute force middleware error: %s", exc)
             raise HTTPException(status_code=500, detail="Internal server error")
@@ -117,4 +131,3 @@ def _memory_guard(ip: str) -> None:
 # Fonksiyon şeklinde kullanıldıysa uyumluluk için alias
 async def login_bruteforce_middleware(request, call_next):
     return await LoginBruteForceMiddleware(None).dispatch(request, call_next)
-
