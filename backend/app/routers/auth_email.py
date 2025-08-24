@@ -1,9 +1,12 @@
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, EmailStr
 from datetime import datetime, timedelta
-from app.config.base import settings
+from passlib.hash import bcrypt
 
-# DB importları (opsiyonel)
+from app.config.base import settings
+from app.services.jwt_service import encode as jwt_encode, decode as jwt_decode
+
+# Opsiyonel DB
 try:
     from app.config.database import SessionLocal
     from app.models.user import User
@@ -11,41 +14,44 @@ except Exception:
     SessionLocal = None
     User = None
 
-# JWT servis
-try:
-    from app.services.jwt_service import encode as jwt_encode, decode as jwt_decode
-except Exception:
-    from jose import jwt
-    def jwt_encode(payload: dict, minutes: int = 60):
-        exp = datetime.utcnow() + timedelta(minutes=minutes)
-        payload = {**payload, "exp": exp}
-        return jwt.encode(payload, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
-    def jwt_decode(token: str):
-        return jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 class RegisterIn(BaseModel):
     email: EmailStr
     password: str
 
+def _base_url(req: Request) -> str:
+    # APP_URL varsa onu kullan; yoksa proxy başlıklarıyla türet
+    app_url = getattr(settings, "APP_URL", None)
+    if app_url:
+        return app_url.rstrip("/")
+    scheme = req.headers.get("x-forwarded-proto", req.url.scheme)
+    host = req.headers.get("host", req.url.netloc)
+    return f"{scheme}://{host}"
+
 @router.post("/register")
 async def register(inp: RegisterIn, req: Request):
     token = jwt_encode({"sub": inp.email, "purpose": "email-verify"}, minutes=30)
-    verify_url = f"{req.url.scheme}://{req.url.netloc}/auth/verify-email?token={token}"
+    verify_url = f"{_base_url(req)}/auth/verify-email?token={token}"
 
     if SessionLocal and User:
         db = SessionLocal()
         try:
             user = db.query(User).filter(User.email == inp.email).first()
             if not user:
-                user = User(email=inp.email, is_email_verified=False)  # TODO: hash password
+                hashed = bcrypt.hash(inp.password)
+                # Modelinde password_hash alanı yoksa eklemelisin.
+                user = User(
+                    email=inp.email,
+                    password_hash=hashed,
+                    is_email_verified=False,
+                )
                 db.add(user)
                 db.commit()
         finally:
             db.close()
 
-    # TODO: email_service ile gönderim
+    # TODO: email_service ile verify_url gönder (SMTP)
     return {"ok": True, "verify_url": verify_url}
 
 @router.get("/verify-email")

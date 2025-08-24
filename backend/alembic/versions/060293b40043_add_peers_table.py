@@ -1,8 +1,8 @@
-"""add vpn_configs
+"""add peers table
 
-Revision ID: 34db935d8eb9
-Revises: beb3b7fa379b
-Create Date: 2025-08-22 08:31:55.620616
+Revision ID: 060293b40043
+Revises: 6625950749e8
+Create Date: 2025-08-24 20:43:03.017167
 
 """
 from typing import Sequence, Union
@@ -12,8 +12,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '34db935d8eb9'
-down_revision: Union[str, Sequence[str], None] = 'beb3b7fa379b'
+revision: str = '060293b40043'
+down_revision: Union[str, Sequence[str], None] = '6625950749e8'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

@@ -1,81 +1,60 @@
 # ~/ChameleonVPN/backend/alembic/env.py
 from __future__ import annotations
-
-import os
-import sys
-from string import Template
 from logging.config import fileConfig
-from sqlalchemy import engine_from_config, pool
 from alembic import context
+from sqlalchemy import engine_from_config, pool
+import os, sys
 
-# Alembic Config objesi
 config = context.config
-
-# /app yolunu import path'e ekle (app.* importları için)
-BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-if BASE_DIR not in sys.path:
-    sys.path.insert(0, BASE_DIR)
-
-# --- Modelleri import et ---
-from app.config.database import Base  # Base metadata
-
-# Modelleri açıkça import ediyoruz ki Alembic tabloları tanısın
-from app.models import peer
-from app.models import role
-from app.models import permission
-from app.models.user import user
-
-# ENV'den gelen DATABASE_URL'i .ini'deki sqlalchemy.url üzerine yaz
-raw_url = os.getenv("DATABASE_URL")
-db_pass = os.getenv("POSTGRES_PASSWORD")
-if raw_url and "${POSTGRES_PASSWORD}" in raw_url and db_pass:
-    db_url = Template(raw_url).substitute(POSTGRES_PASSWORD=db_pass)
-    config.set_main_option("sqlalchemy.url", db_url)
-elif raw_url:
-    config.set_main_option("sqlalchemy.url", raw_url)
-
-# Alembic metadata hedefi
-target_metadata = Base.metadata
-
-# (Opsiyonel) logging config
-if config.config_file_name is not None:
+if config.config_file_name:
     fileConfig(config.config_file_name)
 
+# PYTHONPATH ayarı
+BACKEND_DIR = os.path.dirname(os.path.abspath(os.path.join(__file__, "..")))
+if BACKEND_DIR not in sys.path:
+    sys.path.insert(0, BACKEND_DIR)
 
-def run_migrations_offline() -> None:
-    """Offline mod: yalnızca SQL üretir."""
-    url = config.get_main_option("sqlalchemy.url")
+# App metadata
+from app.config.database import Base
+# Modeller autogenerate için import edilmeli:
+from app.models import peer  # noqa: F401
+# (Varsa diğer modelleri de import et: from app.models import user, ...)
+
+target_metadata = Base.metadata
+
+def get_url() -> str:
+    url = os.getenv("DATABASE_URL")
+    if url:
+        return url
+    from app.config.base import settings
+    return settings.DATABASE_URL
+
+def run_migrations_offline():
     context.configure(
-        url=url,
+        url=get_url(),
         target_metadata=target_metadata,
         literal_binds=True,
         compare_type=True,
-        dialect_opts={"paramstyle": "named"},
-        version_table_schema="public",
+        compare_server_default=True,
     )
     with context.begin_transaction():
         context.run_migrations()
 
-
-def run_migrations_online() -> None:
-    """Online mod: DB bağlantısı kurup uygular."""
+def run_migrations_online():
+    configuration = config.get_section(config.config_ini_section) or {}
+    configuration["sqlalchemy.url"] = get_url()
     connectable = engine_from_config(
-        config.get_section(config.config_ini_section),
-        prefix="sqlalchemy.",
-        poolclass=pool.NullPool,
+        configuration, prefix="sqlalchemy.", poolclass=pool.NullPool, future=True
     )
     with connectable.connect() as connection:
         context.configure(
             connection=connection,
             target_metadata=target_metadata,
             compare_type=True,
-            include_schemas=False,  # 👈 sadece public şema
-            include_object=lambda obj, name, type_, reflected, compare_to: True,
-            version_table_schema="public",
+            compare_server_default=True,
         )
         with context.begin_transaction():
             context.run_migrations()
-
 
 if context.is_offline_mode():
     run_migrations_offline()
