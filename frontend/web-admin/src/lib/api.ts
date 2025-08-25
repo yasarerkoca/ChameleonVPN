@@ -18,6 +18,8 @@ export function clearAuthTokens() {
   refreshToken = null;
   localStorage.removeItem('accessToken');
   localStorage.removeItem('refreshToken');
+  // Backend tarafında refresh token'ı geçersiz kılmak için
+  // /auth/logout endpoint'ini çağırmayı unutmayın.
 }
 
 const api = axios.create({ baseURL: API_BASE });
@@ -39,11 +41,11 @@ api.interceptors.response.use(
       try {
         if (!refreshToken) throw new Error('No refresh token');
         const { data } = await axios.post(
-          `${API_BASE}/refresh`,
-          { refreshToken }
+          `${API_BASE}/auth/refresh`,
+          { refresh_token: refreshToken }
         );
-        setAuthTokens({ accessToken: data.accessToken, refreshToken: data.refreshToken ?? refreshToken });
-        config.headers.Authorization = `Bearer ${data.accessToken}`;
+        setAuthTokens({ accessToken: data.access_token, refreshToken: data.refresh_token ?? refreshToken });
+        config.headers.Authorization = `Bearer ${data.access_token}`;
         return api(config);
       } catch (refreshError) {
         clearAuthTokens();

@@ -17,8 +17,7 @@ describe('API token refresh', () => {
 
     mockApi.onGet('/todos/1').replyOnce(401);
     mockApi.onGet('/todos/1').replyOnce(200, { id: 1 });
-    mockBase.onPost('https://example.com/refresh').reply(200, { accessToken: 'new' });
-
+    mockBase.onPost('https://example.com/auth/refresh').reply(200, { access_token: 'new' 
     const data = await fetchTodo();
 
     expect(data).toEqual({ id: 1 });

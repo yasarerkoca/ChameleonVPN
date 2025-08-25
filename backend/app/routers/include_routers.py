@@ -8,7 +8,7 @@ from .auth import (
     password,
     auth_2fa,
 )
-
+from .auth.auth_2fa import router as auth_2fa_router
 # --- Admin ---
 from .admin import (
     account_unlock,
@@ -74,7 +74,7 @@ def include_routers(app: FastAPI):
     app.include_router(oauth.router)
     app.include_router(password.router)
     app.include_router(ip_range.router)
-    app.include_router(auth_2fa.router)
+    app.include_router(auth_2fa_router)
     app.include_router(dnsleak.router)
 
     # ADMIN

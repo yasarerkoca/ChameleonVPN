@@ -2,10 +2,12 @@ from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 import asyncio
 from sqlalchemy.orm import Session
 from fastapi_limiter.depends import RateLimiter
+from pydantic import BaseModel, Field
 from app.config.base import settings
 
 from app.models.user.user import User
 from app.schemas.user.user_base import UserCreate, UserLogin, UserOut
+from app.schemas.token.token_refresh import TokenRefresh
 from app.utils.db.db_utils import get_db
 from app.utils.auth.auth_utils import (
     is_strong_password,
@@ -18,6 +20,7 @@ from app.services.jwt_service import (
     create_refresh_token,
     create_email_verification_token,
     verify_email_verification_token,
+    refresh_tokens,
 )
 from app.services.email_verification_service import send_verification_email
 
@@ -84,6 +87,25 @@ def login(
         "full_name": user.full_name,
         "is_active": user.is_active
     }
+
+@router.post("/logout", summary="Kullanıcı çıkışı")
+def logout(data: TokenRefresh):
+    """Refresh token'ı kara listeye ekleyerek çıkış yap."""
+    revoke_refresh_token(data.refresh_token)
+    return {"msg": "Logout successful"}
+
+class RefreshTokenRequest(BaseModel):
+    """Request body for token refresh."""
+
+    refresh_token: str = Field(..., alias="refreshToken")
+
+    class Config:
+        allow_population_by_field_name = True
+
+@router.post("/refresh", summary="Refresh access and refresh tokens")
+def refresh_token_endpoint(payload: RefreshTokenRequest):
+    tokens = refresh_tokens(payload.refresh_token)
+    return tokens
 
 @router.get("/verify-email", summary="E-posta doğrulamasını tamamla")
 def verify_email(

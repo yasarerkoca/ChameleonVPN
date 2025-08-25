@@ -29,7 +29,6 @@ from app.events.shutdown_events import register_shutdown_events
 
 # ✅ Yeni eklenen router importları
 from app.routers.auth_email import router as auth_email_router
-from app.routers.auth_2fa import router as auth_2fa_router
 from app.routers.vpn.vpn_peers import router as vpn_peers_router
 
 import redis.asyncio as aioredis
@@ -81,7 +80,6 @@ app.include_router(health_router)
 app.include_router(firebase_router)
 # ✅ Yeni auth/vpn routerlar burada include ediliyor
 app.include_router(auth_email_router)
-app.include_router(auth_2fa_router)
 app.include_router(vpn_peers_router)
 
 app.add_middleware(LoggingMiddleware)

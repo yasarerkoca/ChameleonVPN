@@ -5,6 +5,7 @@ from passlib.hash import bcrypt
 
 from app.config.base import settings
 from app.services.jwt_service import encode as jwt_encode, decode as jwt_decode
+from app.services.email_verification_service import send_verification_email
 
 # Opsiyonel DB
 try:
@@ -51,8 +52,8 @@ async def register(inp: RegisterIn, req: Request):
         finally:
             db.close()
 
-    # TODO: email_service ile verify_url gönder (SMTP)
-    return {"ok": True, "verify_url": verify_url}
+    await send_verification_email(inp.email, verify_url)
+    return {"ok": True}
 
 @router.get("/verify-email")
 async def verify_email(token: str):
