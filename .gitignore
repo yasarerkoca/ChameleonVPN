@@ -10,6 +10,8 @@ __pycache__/
 *.sqlite3
 *.log
 *.out
+# .env (tek kaynak)
+backend/.env
 
 # Virtual env
 # .env

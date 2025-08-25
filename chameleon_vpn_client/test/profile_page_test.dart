@@ -10,7 +10,7 @@ void main() {
       ..login(const User(name: 'Alice', subscription: 'Pro', token: 't'));
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [appProvider.overrideWith(() => notifier)],
+        overrides: [appProvider.overrideWith((ref) => notifier)],
         child: const MaterialApp(home: ProfilePage()),
       ),
     );

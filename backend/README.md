@@ -79,12 +79,12 @@ pytest -q
 - Port kilitlenirse: `fuser -k 8000/tcp`
 
 ## ENV (özet)
-- DB_URL=postgresql+psycopg2://vpnadmin:PASS@db:5432/chameleonvpn
+- DATABASE_URL=postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
 - REDIS_URL=redis://redis:6379/0
 - SECRET_KEY=change-me
 - JWT_ALGO=HS256
 - OAUTH_GOOGLE_CLIENT_ID=...
-- `DATABASE_URL`=postgresql+psycopg2://vpnadmin:PASS@db:5432/chameleonvpn
+- `DATABASE_URL`=postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
 - `REDIS_URL`=redis://redis:6379/0
 - `SECRET_KEY`=change-me (JWT için zorunlu)
 - `SESSION_SECRET_KEY`=change-me-too (SessionMiddleware için zorunlu)

@@ -2,7 +2,8 @@
 application: access, refresh, email verification and password reset.
 
 All expiration times and algorithms are configured via the application
-settings to avoid hard-coded values in the codebase."""
+settings to avoid hard-coded values in the codebase.
+"""
 
 from datetime import datetime, timedelta
 from typing import Optional, Dict
@@ -11,6 +12,7 @@ from jose import jwt, JWTError
 
 from app.config.base import settings
 from . import token_blacklist
+
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
     """Create a signed access token."""
@@ -80,6 +82,8 @@ def decode_token(token: str) -> Optional[Dict]:
         return jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
     except JWTError:
         return None
+
+
 def revoke_refresh_token(token: str) -> None:
     """Blacklist the provided refresh token using Redis."""
     payload = decode_token(token)
@@ -93,7 +97,8 @@ def refresh_tokens(refresh_token: str) -> Dict[str, str]:
     """Rotate refresh tokens and issue a new token pair.
 
     Raises ``HTTPException`` if the provided refresh token is invalid or
-    has been revoked."""
+    has been revoked.
+    """
     if token_blacklist.contains(refresh_token):
         raise HTTPException(status_code=401, detail="Refresh token revoked")
 
@@ -109,8 +114,17 @@ def refresh_tokens(refresh_token: str) -> Dict[str, str]:
     refresh = create_refresh_token(data)
     return {"access_token": access, "refresh_token": refresh, "token_type": "bearer"}
 
-# Backwards compatibility alias
+
+# --- Backwards compatibility aliases ---
 decode_access_token = decode_token
+
+def encode(payload: dict, expires_delta: Optional[timedelta] = None) -> str:
+    """Alias for create_access_token (for backward compatibility)."""
+    return create_access_token(payload, expires_delta)
+
+def decode(token: str) -> Optional[Dict]:
+    """Alias for decode_token (for backward compatibility)."""
+    return decode_token(token)
 
 
 __all__ = [
@@ -124,4 +138,6 @@ __all__ = [
     "decode_access_token",
     "refresh_tokens",
     "revoke_refresh_token",
+    "encode",
+    "decode",
 ]

@@ -12,7 +12,7 @@ void main() {
       ProviderScope(
         overrides: [
           serverListProvider.overrideWith((ref) => Future.value(servers)),
-          appProvider.overrideWith(() => app),
+          appProvider.overrideWith((ref) => app),
         ],
         child: const MaterialApp(home: ServersPage()),
       ),

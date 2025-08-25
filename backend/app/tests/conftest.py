@@ -26,7 +26,15 @@ from app.config.database import Base, get_db
 # ---------------------------------------------------------------------------
 # Environment setup
 # ---------------------------------------------------------------------------
-DATABASE_URL = os.environ["DATABASE_URL"]
+DATABASE_URL = os.getenv("DATABASE_URL")
+if not DATABASE_URL:
+    # fallback test connection
+    user = os.getenv("POSTGRES_USER", "postgres")
+    password = os.getenv("POSTGRES_PASSWORD", "postgres")
+    db_name = os.getenv("POSTGRES_DB", "postgres")
+    host_port = os.getenv("POSTGRES_PORT", "5432")
+    DATABASE_URL = f"postgresql+psycopg2://{user}:{password}@localhost:{host_port}/{db_name}"
+
 engine = create_engine(DATABASE_URL, pool_pre_ping=True)
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
@@ -103,9 +111,7 @@ def postgres_container(request):
     # wait for Postgres to be ready
     for _ in range(30):
         try:
-            tmp_engine = create_engine(
-                f"postgresql+psycopg2://{user}:{password}@localhost:{host_port}/{db_name}"
-            )
+            tmp_engine = create_engine(DATABASE_URL)
             with tmp_engine.connect():
                 break
         except Exception:
@@ -179,7 +185,6 @@ def setup_database(postgres_container, request):
 # Async client fixtures
 # ---------------------------------------------------------------------------
 
-
 @pytest_asyncio.fixture(scope="session")
 def event_loop():
     loop = asyncio.new_event_loop()
@@ -195,6 +200,7 @@ async def _startup_limiter(redis_container):
     await redis.close()
     yield
     await FastAPILimiter.close()
+
 
 @pytest_asyncio.fixture()
 async def client(_startup_limiter):

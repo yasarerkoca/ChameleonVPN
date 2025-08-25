@@ -2,20 +2,20 @@ services:
   # --- PostgreSQL veritabanı ---
   db:
     image: postgres:14
-    environment:
-      POSTGRES_DB: chameleonvpn
-      POSTGRES_USER: vpnadmin
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    env_file:
+      - ./backend/.env
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U vpnadmin -d chameleonvpn"]
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
       interval: 10s
       timeout: 5s
       retries: 10
     ports:
       - "127.0.0.1:5432:5432"
     restart: unless-stopped
+    networks:
+      - chameleon_net
 
   # --- Redis ---
   redis:
@@ -29,6 +29,8 @@ services:
       timeout: 3s
       retries: 10
     restart: unless-stopped
+    networks:
+      - chameleon_net
 
   # --- Alembic migrate ---
   migrate:
@@ -40,8 +42,6 @@ services:
     command: ["upgrade", "head"]
     env_file:
       - ./backend/.env
-    environment:
-      DATABASE_URL: postgresql+psycopg2://vpnadmin:${POSTGRES_PASSWORD}@db:5432/chameleonvpn
     volumes:
       - ./backend:/app
       - ./infra/secrets:/app/secrets:ro
@@ -49,6 +49,8 @@ services:
       db:
         condition: service_healthy
     restart: "no"
+    networks:
+      - chameleon_net
 
   # --- Backend (FastAPI) ---
   backend:
@@ -59,12 +61,6 @@ services:
     entrypoint: ["/entrypoint.sh"]
     env_file:
       - ./backend/.env
-    environment:
-      DATABASE_URL: postgresql+psycopg2://vpnadmin:${POSTGRES_PASSWORD}@db:5432/chameleonvpn
-      REDIS_URL: redis://redis:6379/0
-      ALLOWED_ORIGINS: '["http://localhost","http://127.0.0.1","https://chameleonvpn.app","https://www.chameleonvpn.app"]'
-      FIREBASE_PROJECT_ID: chameleonvpn-aba53
-      GOOGLE_APPLICATION_CREDENTIALS: /app/secrets/serviceAccount.json
     volumes:
       - ./backend:/app
       - ./infra/secrets:/app/secrets:ro
@@ -86,6 +82,8 @@ services:
     ports:
       - "8000:8000"
     restart: unless-stopped
+    networks:
+      - chameleon_net
 
   # --- Web (Nginx reverse proxy + static hosting) ---
   web:
@@ -100,15 +98,11 @@ services:
       - ./frontend/web-admin/dist:/usr/share/nginx/html:ro
       - ./frontend/root:/usr/share/nginx/root:ro
       - ./deploy/nginx/chameleon.conf:/etc/nginx/conf.d/default.conf:ro
-      - /etc/letsencrypt:/etc/letsencrypt:ro   # <-- Host’taki sertifikaları mount ettik
+      - /etc/letsencrypt:/etc/letsencrypt:ro
       - certbot-www:/var/www/certbot
-    working_dir: /usr/share/nginx
-    healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1/healthz || exit 1"]
-      interval: 15s
-      timeout: 5s
-      retries: 10
     restart: unless-stopped
+    networks:
+      - chameleon_net
 
   # --- Certbot ---
   certbot:
@@ -121,9 +115,16 @@ services:
     entrypoint: sh
     command: -c 'trap exit TERM; while :; do certbot renew --webroot -w /var/www/certbot --quiet --deploy-hook "/renew_hook.sh"; sleep 12h; done'
     restart: unless-stopped
+    networks:
+      - chameleon_net
 
 # --- Volume tanımları ---
 volumes:
   pgdata:
   redisdata:
   certbot-www:
+
+# --- Network tanımı ---
+networks:
+  chameleon_net:
+    driver: bridge

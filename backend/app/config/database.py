@@ -1,14 +1,21 @@
+# ~/ChameleonVPN/backend/app/config/database.py
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from app.config.base import settings
 
-SQLALCHEMY_DATABASE_URL = settings.DATABASE_URL
-#engine = create_engine(SQLALCHEMY_DATABASE_URL)
-engine = create_engine(SQLALCHEMY_DATABASE_URL, pool_size=10, max_overflow=20, pool_timeout=30)
+# Tek kaynak: settings.DATABASE_URL
+engine = create_engine(
+    settings.DATABASE_URL,
+    pool_size=10,
+    max_overflow=20,
+    pool_timeout=30,
+    pool_pre_ping=True,
+)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
+
 
 def get_db():
     db = SessionLocal()
@@ -17,20 +24,18 @@ def get_db():
     finally:
         db.close()
 
+
 def init_db():
     """Initialize database tables and insert initial data."""
     from passlib.context import CryptContext
     from app.models.user.user import User
 
-    # Create tables based on the SQLAlchemy models
     Base.metadata.create_all(bind=engine)
 
-    # Prepare a database session for inserting initial data
     db = SessionLocal()
     try:
         pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-        # Create a default admin user if it does not exist
         admin_email = settings.ADMIN_EMAIL
         admin_password = settings.ADMIN_PASSWORD
         existing_admin = db.query(User).filter(User.email == admin_email).first()

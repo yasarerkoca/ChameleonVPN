@@ -7,7 +7,10 @@ from sqlalchemy import Column, Integer, String, create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 
 # Configure minimal environment for importing application modules
-os.environ.setdefault("DATABASE_URL", "postgresql+psycopg2://user:pass@localhost/test")
+os.environ.setdefault(
+    "DATABASE_URL",
+    os.getenv("DATABASE_URL", "postgresql+psycopg2://user:pass@localhost/test")
+)
 os.environ.setdefault("SECRET_KEY", "x" * 16)
 os.environ.setdefault("SESSION_SECRET_KEY", "y" * 16)
 

@@ -3,14 +3,10 @@ import os
 import json
 from typing import Optional, List
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from pydantic import field_validator, ValidationError, Field, AliasChoices
+from pydantic import field_validator, ValidationError
+
 
 class Settings(BaseSettings):
-    """
-    Uygulama yapılandırması (.env + ortam değişkenleri).
-    - extra="ignore": Tanımsız ENV anahtarları hata çıkarmaz.
-    - case_sensitive=False: ENV adları büyük/küçük harf duyarsız.
-    """
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
@@ -22,30 +18,20 @@ class Settings(BaseSettings):
     DATABASE_URL: str
 
     # --- JWT / Token ---
-    SECRET_KEY: str = Field(
-        validation_alias=AliasChoices("SECRET_KEY", "JWT_SECRET_KEY")
-    )  # ZORUNLU (>=16)
-    ALGORITHM: str = Field(
-        "HS256", validation_alias=AliasChoices("ALGORITHM", "JWT_ALGORITHM")
-    )  # .env: JWT_ALGO ile override edilir
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(
-        60,
-        validation_alias=AliasChoices(
-            "ACCESS_TOKEN_EXPIRE_MINUTES", "JWT_ACCESS_TOKEN_EXPIRE_MINUTES"
-        ),
-    )
+    SECRET_KEY: str
+    ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
     PASSWORD_RESET_TOKEN_EXPIRE_MINUTES: int = 60
     EMAIL_VERIFICATION_TOKEN_EXPIRE_MINUTES: int = 60 * 24
 
     # --- Session ---
-    SESSION_SECRET_KEY: str            # ZORUNLU (>=16)
+    SESSION_SECRET_KEY: str
 
     # --- Redis ---
     REDIS_URL: str = "redis://redis:6379/0"
 
     # --- CORS ---
-    # JSON dizesi ('["https://a.com","https://b.com"]') veya CSV ("https://a.com,https://b.com")
     ALLOWED_ORIGINS: str = ""
 
     # --- App bayrakları ---
@@ -86,13 +72,10 @@ class Settings(BaseSettings):
     # ---- Validators ----
     @field_validator("DATABASE_URL", mode="before")
     @classmethod
-    def database_url_alias(cls, v):
-        # DB_URL alias desteği (varsa kullan)
-        if (v is None or str(v).strip() == "") and os.getenv("DB_URL"):
-            return os.getenv("DB_URL")
+    def database_url_must_exist(cls, v):
         if isinstance(v, str) and v.strip():
-            return v
-        raise ValueError("DATABASE_URL must be set (or DB_URL alias).")
+            return v.strip()
+        raise ValueError("DATABASE_URL must be set in .env file.")
 
     @field_validator("SECRET_KEY", "SESSION_SECRET_KEY", mode="before")
     @classmethod
@@ -111,13 +94,11 @@ class Settings(BaseSettings):
     @field_validator("ALGORITHM", mode="before")
     @classmethod
     def normalize_algo(cls, v):
-        # JWT_ALGO varsa ALGORITHM'i override et
         return os.getenv("JWT_ALGO", v or "HS256")
 
     @field_validator("ALLOWED_ORIGINS", mode="before")
     @classmethod
     def normalize_allowed_origins(cls, v):
-        # JSON list -> CSV, list -> CSV; değer boş ise hata
         if v is None:
             raise ValueError("ALLOWED_ORIGINS must be set.")
         if isinstance(v, str):
@@ -145,25 +126,17 @@ class Settings(BaseSettings):
             return v.strip()
         raise ValueError("ADMIN_EMAIL/ADMIN_PASSWORD must be set and non-empty.")
 
-    # FastAPI CORSMiddleware için liste döndür
     def cors_origins(self) -> List[str]:
         raw = (self.ALLOWED_ORIGINS or "").strip()
         if raw == "*":
             return ["*"]
         return [o.strip() for o in raw.split(",") if o.strip()]
+
+
 try:
     settings = Settings()
 except ValidationError as e:
     missing = ", ".join(err["loc"][0] for err in e.errors())
     raise RuntimeError(
-        f"Kritik ortam değişkenleri eksik: {missing}. Lütfen .env dosyanızda bu değerleri tanımlayın."
+        f"Kritik ortam değişkenleri eksik: {missing}. Lütfen backend/.env dosyanızda bu değerleri tanımlayın."
     ) from e
-
-if settings.SECRET_KEY in ("", "dev-secret"):
-    raise RuntimeError(
-        "Kritik ortam değişkeni eksik: SECRET_KEY. Lütfen .env dosyanızda güvenli bir SECRET_KEY belirleyin."
-    )
-if settings.SESSION_SECRET_KEY in ("", "dev-secret", "change-me-too"):
-    raise RuntimeError(
-        "Kritik ortam değişkeni eksik: SESSION_SECRET_KEY. Lütfen .env dosyanızda güvenli bir SESSION_SECRET_KEY belirleyin."
-    )

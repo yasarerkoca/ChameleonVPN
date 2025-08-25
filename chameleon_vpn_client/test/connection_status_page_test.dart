@@ -11,7 +11,7 @@ void main() {
       ..selectServer(const Server(id: '1', name: 'Server'));
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [appProvider.overrideWith(() => notifier)],
+        overrides: [appProvider.overrideWith((ref) => notifier)],
         child: const MaterialApp(home: ConnectionStatusPage()),
       ),
     );
