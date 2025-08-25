@@ -4,6 +4,17 @@ on: [push, pull_request]
 jobs:
   backend:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_DB: chameleonvpn
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready" --health-interval 10s --health-timeout 5s --health-retries 5
+    env:
+      DATABASE_URL: postgresql+psycopg2://postgres:${{ secrets.POSTGRES_PASSWORD }}@localhost:5432/chameleonvpn
     defaults: { run: { working-directory: ./backend } }
     steps:
       - uses: actions/checkout@v4
@@ -24,6 +35,8 @@ jobs:
         run: ruff .
       - name: Type check
         run: mypy .
+      - name: Migrate database
+        run: alembic upgrade head
       - name: Test
         run: pytest --cov --junitxml=test-results.xml
       - name: Security audit

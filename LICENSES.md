@@ -65,7 +65,7 @@
 | cupertino_icons | ^1.0.8 | https://pub.dev/packages/cupertino_icons | [MIT](https://opensource.org/licenses/MIT) |
 | http | latest | https://pub.dev/packages/http | [BSD-3-Clause](https://opensource.org/licenses/BSD-3-Clause) |
 | openvpn_flutter | latest | https://pub.dev/packages/openvpn_flutter | [MIT](https://opensource.org/licenses/MIT) |
-| flutter_wireguard_plugin | path: ./plugins/flutter_wireguard_plugin | local | N/A |
+| flutter_wireguard_plugin | path: ./plugins/flutter_wireguard_plugin | local | [MIT](https://opensource.org/licenses/MIT) |
 | flutter_riverpod | ^2.5.1 | https://pub.dev/packages/flutter_riverpod | [MIT](https://opensource.org/licenses/MIT) |
 | flutter_secure_storage | latest | https://pub.dev/packages/flutter_secure_storage | [BSD-3-Clause](https://opensource.org/licenses/BSD-3-Clause) |
 | shared_preferences | ^2.2.2 | https://pub.dev/packages/shared_preferences | [BSD-3-Clause](https://opensource.org/licenses/BSD-3-Clause) |
@@ -78,6 +78,7 @@
 | integration_test | sdk | https://pub.dev/packages/integration_test | [BSD-3-Clause](https://opensource.org/licenses/BSD-3-Clause) |
 
 ## Flutter WireGuard Plugin
+This plugin is licensed under the [MIT License](chameleon_vpn_client/plugins/flutter_wireguard_plugin/LICENSE).
 ### Dependencies
 | Package | Version | Source | License |
 | --- | --- | --- | --- |
