@@ -6,7 +6,6 @@ from .auth import (
     auth_profile_routes,
     oauth,
     password,
-    auth_2fa,
 )
 from .auth.auth_2fa import router as auth_2fa_router
 # --- Admin ---
@@ -73,20 +72,19 @@ def include_routers(app: FastAPI):
     app.include_router(auth_profile_routes.router)
     app.include_router(oauth.router)
     app.include_router(password.router)
-    app.include_router(ip_range.router)
     app.include_router(auth_2fa_router)
-    app.include_router(dnsleak.router)
 
     # ADMIN
     admin_routers = [
         account_unlock.router,
+        ip_range.router,
         ai_logs.router,
         ai_server_log_routes.router,
         anomaly_analysis.router,
         api_key_routes.router,
         ban_manage.router,
         groups.router,
-        ip_block.router,             # Banlı IP yönetimi
+        ip_block.router,
         manual_audit.router,
         proxy_limit.router,
         proxy_routes.router,
@@ -125,6 +123,6 @@ def include_routers(app: FastAPI):
 
     # MONITOR
     app.include_router(monitor_routes.router)
-
+    app.include_router(dnsleak.router)
     # PROXY (USER)
     app.include_router(proxy_user_routes.router)

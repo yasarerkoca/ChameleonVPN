@@ -1,5 +1,4 @@
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
-import asyncio
 from sqlalchemy.orm import Session
 from fastapi_limiter.depends import RateLimiter
 from pydantic import BaseModel, Field
@@ -21,19 +20,17 @@ from app.services.jwt_service import (
     create_email_verification_token,
     verify_email_verification_token,
     refresh_tokens,
+    revoke_refresh_token,
 )
 from app.services.email_verification_service import send_verification_email
 
-router = APIRouter(
-    prefix="/auth",
-    tags=["auth-account"]
-)
+router = APIRouter(prefix="/auth", tags=["auth-account"])
 
 @router.post(
     "/register",
     response_model=UserOut,
     dependencies=[Depends(RateLimiter(times=3, seconds=60))],
-    summary="Yeni kullanıcı kaydı"
+    summary="Yeni kullanıcı kaydı",
 )
 def register(
     user: UserCreate,
@@ -61,16 +58,12 @@ def register(
     verification_token = create_email_verification_token(new_user.email)
     verify_url = settings.EMAIL_VERIFY_URL + f"?token={verification_token}"
     if background_tasks:
-        background_tasks.add_task(
-            asyncio.create_task, send_verification_email(new_user.email, verify_url)
-        )
+        background_tasks.add_task(send_verification_email, new_user.email, verify_url)
+            send_verification_email, new_user.email, verify_url
     return new_user
 
 @router.post("/login", summary="Kullanıcı girişi (JWT ile)")
-def login(
-    data: UserLogin,
-    db: Session = Depends(get_db)
-):
+def login(data: UserLogin, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.email == data.email).first()
     if not user or not verify_password(data.password, user.password_hash):
         raise HTTPException(status_code=401, detail="Invalid credentials")
@@ -85,7 +78,7 @@ def login(
         "user_id": user.id,
         "email": user.email,
         "full_name": user.full_name,
-        "is_active": user.is_active
+        "is_active": user.is_active,
     }
 
 @router.post("/logout", summary="Kullanıcı çıkışı")
