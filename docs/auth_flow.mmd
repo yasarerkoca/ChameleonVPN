@@ -1,0 +1,13 @@
+```mermaid
+graph TD
+    U[User] -->|POST /auth/login| L[/auth/login/]
+    L --> T{2FA needed?}
+    T -- Yes --> S[/auth/2fa/setup/]
+    S --> A[Authenticator App]
+    A --> V[/auth/2fa/login-totp/]
+    V --> P[Protected APIs]
+    T -- No --> P
+    P --> DB[(PostgreSQL)]
+    P --> RD[(Redis)]
+    P --> SMTP[(SMTP Server)]
+```

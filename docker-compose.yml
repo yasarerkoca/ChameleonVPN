@@ -68,6 +68,9 @@ services:
     volumes:
       - ./backend:/app
       - ./infra/secrets:/app/secrets:ro
+      - /etc/wireguard:/etc/wireguard
+    cap_add:
+      - NET_ADMIN
     depends_on:
       db:
         condition: service_healthy

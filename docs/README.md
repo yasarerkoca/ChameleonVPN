@@ -46,7 +46,7 @@ Bu belge API uç noktalarını, mimari kararları ve kurulum/dağıtım adımlar
 
 ### Geliştirme Ortamı
 1. `cd backend`
-2. `.env` dosyasını gereken değişkenlerle düzenleyin ve güçlü bir `POSTGRES_PASSWORD` tanımlayın.
+2. `.env` dosyasını düzenleyip gereken değişkenlerle doldurun ve güçlü bir `POSTGRES_PASSWORD` tanımlayın.
    - Ödeme sağlayıcıları için `STRIPE_SUCCESS_URL`, `STRIPE_CANCEL_URL` ve
      `IYZICO_CALLBACK_URL` ortam değişkenlerinin ayarlandığından emin olun.
    - CORS için `ALLOWED_ORIGINS` değerini virgülle ayrılmış veya JSON liste olarak belirtin (ör. `ALLOWED_ORIGINS="https://app.example.com,https://admin.example.com"`).
@@ -57,7 +57,7 @@ Bu belge API uç noktalarını, mimari kararları ve kurulum/dağıtım adımlar
 ### Docker ile Çalıştırma
 1. `backend/.env.example` dosyasını `backend/.env` olarak kopyalayıp ayarları
    yapın
-2. `POSTGRES_PASSWORD` ortam değişkenini (örn. proje kökündeki `.env` dosyasında) güçlü bir parolayla tanımlayın
+2. Proje kökündeki `.env` dosyasını düzenleyip güçlü bir `POSTGRES_PASSWORD` tanımlayın
 3. `docker-compose up --build` komutu ile servisleri başlatın
 4. API `http://localhost:8000` adresinden ulaşılabilir
 
@@ -67,3 +67,4 @@ Bu belge API uç noktalarını, mimari kararları ve kurulum/dağıtım adımlar
 
 ## Mimari
 Ayrıntılı karar kayıtları için `docs/adr/0001-record-architecture.md` dosyasına bakın.
+`auth_flow.mmd` dosyasında giriş ve 2FA sürecini gösteren basit bir mimari diyagram bulunur.

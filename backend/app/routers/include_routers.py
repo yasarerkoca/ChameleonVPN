@@ -6,6 +6,7 @@ from .auth import (
     auth_profile_routes,
     oauth,
     password,
+    auth_login,
 )
 from .auth.auth_2fa import router as auth_2fa_router
 # --- Admin ---
@@ -69,6 +70,7 @@ from .proxy import user_routes as proxy_user_routes
 def include_routers(app: FastAPI):
     # AUTH
     app.include_router(auth_account_actions.router)
+    app.include_router(auth_login.router)
     app.include_router(auth_profile_routes.router)
     app.include_router(oauth.router)
     app.include_router(password.router)

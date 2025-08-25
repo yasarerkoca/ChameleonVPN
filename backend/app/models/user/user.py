@@ -29,6 +29,7 @@ class User(Base):
 
     mfa_enabled = Column(Boolean, default=False)
     totp_secret = Column(String(32), nullable=True)
+    is_2fa_verified = Column(Boolean, default=False)
 
     last_login = Column(DateTime, nullable=True)
     last_ip = Column(String(64), nullable=True)

@@ -27,16 +27,14 @@ docker-compose.yml         # Geliştirme orkestrasyonu
 
 Önkoşullar: **Docker** ve **Docker Compose**
 
-1) Ortam dosyalarsını oluştur:
+1) Ortam dosyalarını oluştur:
 ```bash
 cp backend/.env.example backend/.env
-# backend/.env içindeki kritik değişkenleri doldur:
+# backend/.env ve .env içindeki kritik değişkenleri doldur:
 # - POSTGRES_PASSWORD=...
 # - ALLOWED_ORIGINS=...
 # - EMAIL_VERIFY_URL=...
 # (Diğerleri: backend/.env.example içinde)
-# Proje kökünde güçlü bir POSTGRES_PASSWORD tanımlayın
-echo "POSTGRES_PASSWORD=ChameleonVPN_P@ssw0rd!2024" > .env
 ```
 
 2) Veritabanı ve Redis’i başlat:
@@ -56,6 +54,9 @@ docker-compose run --rm backend bash -lc "cd /srv && alembic -c alembic.ini upgr
 ```bash
 docker-compose up -d backend web
 ```
+> WireGuard peers are configured inside the container. The `backend` service now requires
+> `NET_ADMIN` capability and access to the host's `/etc/wireguard` directory. Ensure the host
+> exposes `/etc/wireguard` and supports these permissions when starting the stack.
 
 5) Sağlık kontrolü:
 ```bash
@@ -72,7 +73,7 @@ curl -sS http://127.0.0.1/api/healthz
 cd backend
 python3.12 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-cp .env.example .env  # değerleri doldur
+# .env içindeki değerleri doldur
 alembic -c alembic.ini upgrade head
 uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
@@ -89,8 +90,7 @@ uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
 ## ⚙️ Ortam Değişkenleri
 
-Tüm örnekler `backend/.env.example` içindedir. Başlıca değişkenler:
-
+ Tüm örnekler `backend/.env.example` ve `.env` dosyalarında yer alır. Başlıca değişkenler:
 - **Veritabanı:** `POSTGRES_HOST`, `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD`
 - **Uygulama:** `ALLOWED_ORIGINS`, `EMAIL_VERIFY_URL`, `UVICORN_WORKERS`
 - **Admin:** `ADMIN_EMAIL`, `ADMIN_PASSWORD` (ilk kurulumda varsayılan yönetici)

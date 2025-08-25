@@ -20,7 +20,7 @@ except Exception:  # pragma: no cover
     SessionLocal = None  # type: ignore
 
 # Sadece gerçek login uçları
-LOGIN_PATHS = {"/auth/login", "/auth/2fa/verify"}
+LOGIN_PATHS = {"/auth/login", "/auth/2fa/verify", "/auth/2fa/login-totp"}
 MAX_ATTEMPTS = 5
 
 class LoginBruteForceMiddleware(BaseHTTPMiddleware):

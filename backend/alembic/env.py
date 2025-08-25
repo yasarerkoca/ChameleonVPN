@@ -18,6 +18,8 @@ if BACKEND_DIR not in sys.path:
 from app.config.database import Base
 # Modeller autogenerate için import edilmeli:
 from app.models import peer  # noqa: F401
+# failed login attempts tablosu için model
+from app.models.security import failed_login_attempt  # noqa: F401
 # (Varsa diğer modelleri de import et: from app.models import user, ...)
 
 target_metadata = Base.metadata

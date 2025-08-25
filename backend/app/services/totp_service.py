@@ -42,6 +42,9 @@ def verify_twofa_code(db: Session, email: str, code: str) -> User:
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
+    if user.is_2fa_verified:
+        return user
+
     token_row = db.query(TwoFactorToken).filter(
         TwoFactorToken.user_id == user.id,
         TwoFactorToken.code == code,
@@ -64,6 +67,9 @@ def verify_totp_code(db: Session, email: str, totp_code: str) -> User:
     On success the user's ``is_2fa_verified`` flag is updated.
     """
     user = db.query(User).filter(User.email == email).first()
+    if user and user.is_2fa_verified:
+        return user
+
     if (
         not user
         or not user.totp_secret

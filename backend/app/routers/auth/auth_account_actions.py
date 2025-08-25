@@ -5,18 +5,13 @@ from pydantic import BaseModel, Field
 from app.config.base import settings
 
 from app.models.user.user import User
-from app.schemas.user.user_base import UserCreate, UserLogin, UserOut
+from app.schemas.user.user_base import UserCreate, UserOut
 from app.schemas.token.token_refresh import TokenRefresh
 from app.utils.db.db_utils import get_db
-from app.utils.auth.auth_utils import (
-    is_strong_password,
-    get_password_hash,
-    verify_password,
-)
+from app.utils.auth.auth_utils import is_strong_password
+from app.services.password_service import hash_password
 
 from app.services.jwt_service import (
-    create_access_token,
-    create_refresh_token,
     create_email_verification_token,
     verify_email_verification_token,
     refresh_tokens,
@@ -42,7 +37,7 @@ def register(
     if existing_user:
         raise HTTPException(status_code=409, detail="Email already registered")
     is_strong_password(user.password)
-    password_hash = get_password_hash(user.password)
+    password_hash = hash_password(user.password)
     new_user = User(
         email=user.email,
         password_hash=password_hash,
@@ -61,25 +56,6 @@ def register(
         background_tasks.add_task(send_verification_email, new_user.email, verify_url)
             send_verification_email, new_user.email, verify_url
     return new_user
-
-@router.post("/login", summary="Kullanıcı girişi (JWT ile)")
-def login(data: UserLogin, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.email == data.email).first()
-    if not user or not verify_password(data.password, user.password_hash):
-        raise HTTPException(status_code=401, detail="Invalid credentials")
-    if not user.is_email_verified:
-        raise HTTPException(status_code=403, detail="Email not verified")
-    token = create_access_token(data={"sub": user.email, "user_id": user.id})
-    refresh = create_refresh_token(data={"sub": user.email, "user_id": user.id})
-    return {
-        "access_token": token,
-        "refresh_token": refresh,
-        "token_type": "bearer",
-        "user_id": user.id,
-        "email": user.email,
-        "full_name": user.full_name,
-        "is_active": user.is_active,
-    }
 
 @router.post("/logout", summary="Kullanıcı çıkışı")
 def logout(data: TokenRefresh):
